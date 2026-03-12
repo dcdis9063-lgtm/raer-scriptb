@@ -1,0 +1,133 @@
+--[[
+    RAER ULTRA CHEAT V3 | AUTO-INSTALLER & CONFIGURATOR
+    Desenvolvido para: Xeno Executor
+    
+    Este script serve para INSTALAR e CONFIGURAR o seu link de auto-atualização.
+    Ele criará o arquivo final do cheat já com o seu link embutido.
+]]
+
+-- ================================================
+-- INTERFACE DE INSTALAÇÃO (GUI)
+-- ================================================
+local CoreGui = game:GetService("CoreGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RAER_Installer"
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.Size = UDim2.new(0, 300, 0, 200)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.BorderSizePixel = 0
+
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Title.Text = "RAER V3 - INSTALADOR"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Parent = MainFrame
+InfoLabel.Size = UDim2.new(1, -20, 0, 40)
+InfoLabel.Position = UDim2.new(0, 10, 0, 50)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Text = "Insira o seu link do GitHub/Pastebin abaixo para configurar o Auto-Update:"
+InfoLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+InfoLabel.TextWrapped = true
+InfoLabel.Font = Enum.Font.Gotham
+InfoLabel.TextSize = 12
+
+local LinkInput = Instance.new("TextBox")
+LinkInput.Parent = MainFrame
+LinkInput.Size = UDim2.new(1, -20, 0, 30)
+LinkInput.Position = UDim2.new(0, 10, 0, 100)
+LinkInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+LinkInput.Text = "https://raw.githubusercontent.com/..."
+LinkInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+LinkInput.Font = Enum.Font.Gotham
+LinkInput.TextSize = 12
+LinkInput.ClearTextOnFocus = true
+
+local InstallBtn = Instance.new("TextButton")
+InstallBtn.Parent = MainFrame
+InstallBtn.Size = UDim2.new(1, -20, 0, 40)
+InstallBtn.Position = UDim2.new(0, 10, 0, 145)
+InstallBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+InstallBtn.Text = "INSTALAR E CONFIGURAR"
+InstallBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+InstallBtn.Font = Enum.Font.GothamBold
+InstallBtn.TextSize = 14
+
+-- ================================================
+-- LÓGICA DE INSTALAÇÃO
+-- ================================================
+InstallBtn.MouseButton1Click:Connect(function()
+    local userLink = LinkInput.Text
+    
+    if userLink == "" or userLink == "https://raw.githubusercontent.com/..." then
+        InstallBtn.Text = "ERRO: INSIRA UM LINK VÁLIDO!"
+        InstallBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+        wait(2)
+        InstallBtn.Text = "INSTALAR E CONFIGURAR"
+        InstallBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+        return
+    end
+
+    InstallBtn.Text = "CONFIGURANDO..."
+    wait(1)
+
+    -- O script de instalação gera o código final do cheat com o link do usuário
+    local finalScript = [[
+-- RAER ULTRA CHEAT V3 (CONFIGURADO)
+local Settings = {
+    Update_URL = "]] .. userLink .. [[",
+    Update_Enabled = true,
+    Aim_Enabled = true,
+    Aim_FOV = 300,
+    Aim_Part = "Head",
+    Aim_TeamCheck = false,
+    Aim_FriendCheck = true,
+    Aim_VisibleCheck = false,
+    Aim_Key = Enum.UserInputType.MouseButton2,
+    ESP_Enabled = true,
+    ESP_Box = true,
+    ESP_Names = true,
+    Fly_Enabled = false,
+    Fly_Speed = 80,
+    Speed_Enabled = false,
+    Walk_Speed = 100,
+    MenuKey = Enum.KeyCode.P,
+    FlyKey = Enum.KeyCode.F
+}
+
+-- Lógica de Auto-Update
+local success, content = pcall(function() return game:HttpGet(Settings.Update_URL) end)
+if success and content then
+    print("[RAER] Versão mais recente carregada!")
+    loadstring(content)()
+else
+    warn("[RAER] Erro ao atualizar. Verifique o link.")
+end
+]]
+
+    -- No Xeno, podemos salvar o arquivo configurado na pasta do executor
+    if writefile then
+        writefile("raer_configurado.lua", finalScript)
+        InstallBtn.Text = "INSTALADO COM SUCESSO!"
+        InstallBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+        print("[RAER] O arquivo 'raer_configurado.lua' foi criado na sua pasta do Xeno.")
+    else
+        -- Se o executor não suportar writefile, mostramos no console para copiar
+        print("\n--- COPIE O CÓDIGO ABAIXO E SALVE NO SEU VS CODE ---\n")
+        print(finalScript)
+        print("\n--- FIM DO CÓDIGO ---")
+        InstallBtn.Text = "VEJA O CONSOLE (F9)!"
+    end
+
+    wait(3)
+    ScreenGui:Destroy()
+end)
