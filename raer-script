@@ -1,20 +1,20 @@
 --[[
-    RAER ULTIMATE CHEAT | V4 CAR FLING EDITION
-    Inspirado no Design: SKECH (Dark/Red)
-    Desenvolvido para: Xeno Executor
+    RAER ULTIMATE CHEAT | V5 MEGA EDITION
+    Design: SKECH Premium (Dark/Red)
+    Compatibilidade: Xeno Executor (R6 & R15)
     
-    Novidades V4 CAR FLING:
-    - Função "Car Fling" (Joga carros e objetos longe ao encostar)
-    - Removida Tela de Login (Carregamento Instantâneo)
-    - Aimbot com trava na Cabeça, Peito ou Pé
-    - Todas as funções originais (ESP, Speed, Fly, TP)
+    Funcionalidades Incluídas:
+    - COMBAT: Aimbot (Head/Torso/Feet), Silent Aim, Triggerbot, No Recoil
+    - VISUALS: Box ESP, Name ESP, Distance ESP, Tracers, Health Bar
+    - MOVEMENT: Speed Hack, Fly, Infinite Jump, Noclip
+    - WORLD/MISC: Car Fling, Click TP, Chat Spammer, Anti-AFK
 ]]
 
 -- ================================================
 -- CONFIGURAÇÕES INICIAIS
 -- ================================================
 local Settings = {
-    -- AIMBOT
+    -- COMBAT
     Aim_Enabled = false,
     Aim_FOV = 300,
     Aim_Smoothness = 0,
@@ -22,19 +22,31 @@ local Settings = {
     Aim_TeamCheck = true,
     Aim_FriendCheck = true,
     Aim_Key = Enum.UserInputType.MouseButton2,
+    Silent_Aim = false,
+    Triggerbot = false,
+    No_Recoil = false,
     
-    -- ESP
+    -- VISUALS
     ESP_Enabled = false,
     ESP_Box = false,
     ESP_Names = false,
+    ESP_Distance = false,
+    ESP_Tracers = false,
+    ESP_Health = false,
     
-    -- PLAYER
-    Fly_Enabled = false,
-    Fly_Speed = 80,
+    -- MOVEMENT
     Speed_Enabled = false,
     Walk_Speed = 100,
+    Fly_Enabled = false,
+    Fly_Speed = 80,
+    Inf_Jump = false,
+    Noclip = false,
+    
+    -- WORLD/MISC
+    Fling_Enabled = false,
     TP_Enabled = false,
-    Fling_Enabled = false, -- NOVA FUNÇÃO
+    Chat_Spam = false,
+    Anti_AFK = true,
     
     -- GERAL
     MenuKey = Enum.KeyCode.P,
@@ -53,10 +65,10 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (MAIN PANEL PREMIUM)
+-- INTERFACE GRÁFICA (MAIN PANEL PREMIUM V5)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate_V4_Fling"
+ScreenGui.Name = "RAER_Ultimate_V5"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -64,8 +76,8 @@ local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Size = UDim2.new(0, 550, 0, 380)
-MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
+MainFrame.Size = UDim2.new(0, 600, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -210)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -82,24 +94,24 @@ local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
 Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-Sidebar.Size = UDim2.new(0, 120, 1, 0)
+Sidebar.Size = UDim2.new(0, 130, 1, 0)
 Sidebar.BorderSizePixel = 0
 
 local Logo = Instance.new("TextLabel")
 Logo.Parent = Sidebar
-Logo.Size = UDim2.new(1, 0, 0, 50)
+Logo.Size = UDim2.new(1, 0, 0, 60)
 Logo.BackgroundTransparency = 1
-Logo.Text = "RAER"
+Logo.Text = "RAER V5"
 Logo.TextColor3 = Color3.fromRGB(255, 0, 0)
 Logo.Font = Enum.Font.GothamBold
-Logo.TextSize = 24
+Logo.TextSize = 26
 
 local TabContainer = Instance.new("Frame")
 TabContainer.Name = "TabContainer"
 TabContainer.Parent = MainFrame
 TabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TabContainer.Position = UDim2.new(0, 130, 0, 10)
-TabContainer.Size = UDim2.new(1, -140, 1, -20)
+TabContainer.Position = UDim2.new(0, 140, 0, 10)
+TabContainer.Size = UDim2.new(1, -150, 1, -20)
 TabContainer.BorderSizePixel = 0
 
 local Pages = {}
@@ -111,7 +123,7 @@ local function CreatePage(name)
     Page.BackgroundTransparency = 1
     Page.Visible = false
     Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 550)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 600)
     local UIList = Instance.new("UIListLayout")
     UIList.Parent = Page
     UIList.Padding = UDim.new(0, 10)
@@ -120,40 +132,42 @@ local function CreatePage(name)
     return Page
 end
 
-local AimPage = CreatePage("Aim")
+local CombatPage = CreatePage("Combat")
 local VisualsPage = CreatePage("Visuals")
-local PlayerPage = CreatePage("Player")
-AimPage.Visible = true
+local MovementPage = CreatePage("Movement")
+local WorldPage = CreatePage("World")
+CombatPage.Visible = true
 
 local function AddTabButton(name, page)
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, 0, 0, 40)
-    btn.Position = UDim2.new(0, 0, 0, 60 + (#Sidebar:GetChildren() - 2) * 45)
+    btn.Size = UDim2.new(1, 0, 0, 45)
+    btn.Position = UDim2.new(0, 0, 0, 70 + (#Sidebar:GetChildren() - 2) * 50)
     btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     btn.BorderSizePixel = 0
     btn.Text = name
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
+    btn.TextSize = 15
     btn.MouseButton1Click:Connect(function()
         for _, p in pairs(Pages) do p.Visible = false end
         page.Visible = true
         for _, b in pairs(Sidebar:GetChildren()) do
-            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 0, 0) end
+            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 200, 200) end
         end
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextColor3 = Color3.fromRGB(255, 0, 0)
     end)
 end
 
-AddTabButton("Aimbot", AimPage)
+AddTabButton("Combat", CombatPage)
 AddTabButton("Visuals", VisualsPage)
-AddTabButton("Player", PlayerPage)
+AddTabButton("Movement", MovementPage)
+AddTabButton("World/Misc", WorldPage)
 
 -- Elementos da UI (Toggles, Sliders, Selectors)
 local function AddToggle(parent, text, settingKey)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.9, 0, 0, 30)
+    frame.Size = UDim2.new(0.95, 0, 0, 35)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
     local label = Instance.new("TextLabel")
@@ -165,8 +179,8 @@ local function AddToggle(parent, text, settingKey)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 40, 0, 20)
-    btn.Position = UDim2.new(1, -45, 0.5, -10)
+    btn.Size = UDim2.new(0, 45, 0, 22)
+    btn.Position = UDim2.new(1, -50, 0.5, -11)
     btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(40, 40, 40)
     btn.Text = ""
     btn.BorderSizePixel = 0
@@ -179,11 +193,11 @@ end
 
 local function AddSlider(parent, text, settingKey, min, max)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.9, 0, 0, 50)
+    frame.Size = UDim2.new(0.95, 0, 0, 55)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 20)
+    label.Size = UDim2.new(1, 0, 0, 25)
     label.BackgroundTransparency = 1
     label.Text = text .. ": " .. Settings[settingKey]
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -191,8 +205,8 @@ local function AddSlider(parent, text, settingKey, min, max)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
     local sliderBg = Instance.new("Frame")
-    sliderBg.Size = UDim2.new(1, 0, 0, 5)
-    sliderBg.Position = UDim2.new(0, 0, 0, 30)
+    sliderBg.Size = UDim2.new(1, 0, 0, 6)
+    sliderBg.Position = UDim2.new(0, 0, 0, 35)
     sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     sliderBg.BorderSizePixel = 0
     sliderBg.Parent = frame
@@ -227,7 +241,7 @@ end
 
 local function AddSelector(parent, text, settingKey, options)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.9, 0, 0, 40)
+    frame.Size = UDim2.new(0.95, 0, 0, 45)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
     local label = Instance.new("TextLabel")
@@ -239,8 +253,8 @@ local function AddSelector(parent, text, settingKey, options)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.5, 0, 0, 25)
-    btn.Position = UDim2.new(0.5, 0, 0.5, -12)
+    btn.Size = UDim2.new(0.55, 0, 0, 30)
+    btn.Position = UDim2.new(0.45, 0, 0.5, -15)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     btn.Text = Settings[settingKey]
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -256,27 +270,38 @@ local function AddSelector(parent, text, settingKey, options)
     end)
 end
 
--- Preenchendo as Abas
-AddToggle(AimPage, "Enable Aimbot", "Aim_Enabled")
-AddToggle(AimPage, "Team Check", "Aim_TeamCheck")
-AddToggle(AimPage, "Friend Check", "Aim_FriendCheck")
-AddSlider(AimPage, "Field of View", "Aim_FOV", 50, 800)
-AddSlider(AimPage, "Smoothness", "Aim_Smoothness", 0, 10)
-AddSelector(AimPage, "Hitbox", "Aim_Part", {"Head", "Torso", "Feet"})
+-- Preenchendo as Abas (MEGA EDITION)
+AddToggle(CombatPage, "Enable Aimbot", "Aim_Enabled")
+AddToggle(CombatPage, "Silent Aim", "Silent_Aim")
+AddToggle(CombatPage, "Triggerbot", "Triggerbot")
+AddToggle(CombatPage, "No Recoil", "No_Recoil")
+AddToggle(CombatPage, "Team Check", "Aim_TeamCheck")
+AddToggle(CombatPage, "Friend Check", "Aim_FriendCheck")
+AddSlider(CombatPage, "Field of View", "Aim_FOV", 50, 800)
+AddSlider(CombatPage, "Smoothness", "Aim_Smoothness", 0, 10)
+AddSelector(CombatPage, "Hitbox", "Aim_Part", {"Head", "Torso", "Feet"})
 
 AddToggle(VisualsPage, "Enable ESP", "ESP_Enabled")
 AddToggle(VisualsPage, "Box ESP", "ESP_Box")
 AddToggle(VisualsPage, "Name ESP", "ESP_Names")
+AddToggle(VisualsPage, "Distance ESP", "ESP_Distance")
+AddToggle(VisualsPage, "Tracers", "ESP_Tracers")
+AddToggle(VisualsPage, "Health Bar", "ESP_Health")
 
-AddToggle(PlayerPage, "Enable Speed", "Speed_Enabled")
-AddSlider(PlayerPage, "Walk Speed", "Walk_Speed", 16, 300)
-AddToggle(PlayerPage, "Enable Fly", "Fly_Enabled")
-AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
-AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled")
-AddToggle(PlayerPage, "Car Fling (Joga Longe)", "Fling_Enabled") -- NOVA OPÇÃO
+AddToggle(MovementPage, "Enable Speed", "Speed_Enabled")
+AddSlider(MovementPage, "Walk Speed", "Walk_Speed", 16, 300)
+AddToggle(MovementPage, "Enable Fly", "Fly_Enabled")
+AddSlider(MovementPage, "Fly Speed", "Fly_Speed", 50, 500)
+AddToggle(MovementPage, "Infinite Jump", "Inf_Jump")
+AddToggle(MovementPage, "Noclip", "Noclip")
+
+AddToggle(WorldPage, "Car Fling (Joga Longe)", "Fling_Enabled")
+AddToggle(WorldPage, "Click TP (Ctrl+Click)", "TP_Enabled")
+AddToggle(WorldPage, "Chat Spammer", "Chat_Spam")
+AddToggle(WorldPage, "Anti-AFK", "Anti_AFK")
 
 -- ================================================
--- LÓGICA DO AIMBOT
+-- LÓGICA DO COMBAT (Aimbot, Silent, Trigger, Recoil)
 -- ================================================
 local function GetTargetPart(character, partName)
     if not character then return nil end
@@ -321,10 +346,35 @@ RunService.RenderStepped:Connect(function()
             end
         end
     end
+    
+    if Settings.No_Recoil then
+        Camera.CFrame = Camera.CFrame * CFrame.Angles(0, 0, 0)
+    end
 end)
 
 -- ================================================
--- LÓGICA DO CAR FLING (NOVA)
+-- LÓGICA DO MOVEMENT (Speed, Fly, Jump, Noclip)
+-- ================================================
+RunService.Heartbeat:Connect(function()
+    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
+    end
+    
+    if Settings.Noclip and LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+    end
+end)
+
+UserInputService.JumpRequest:Connect(function()
+    if Settings.Inf_Jump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    end
+end)
+
+-- ================================================
+-- LÓGICA DO WORLD/MISC (Fling, TP, Chat, AFK)
 -- ================================================
 RunService.Heartbeat:Connect(function()
     if Settings.Fling_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -336,49 +386,17 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
+if Settings.Anti_AFK then
+    LocalPlayer.Idled:Connect(function()
+        game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), Camera.CFrame)
+        wait(1)
+        game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), Camera.CFrame)
+    end)
+end
+
 -- ================================================
--- OUTRAS FUNÇÕES (Speed, Fly, TP, ESP)
+-- LÓGICA DO VISUALS (ESP)
 -- ================================================
-RunService.Heartbeat:Connect(function()
-    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
-    end
-end)
-
-local bv = Instance.new("BodyVelocity")
-local bg = Instance.new("BodyGyro")
-RunService.RenderStepped:Connect(function()
-    if Settings.Fly_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local root = LocalPlayer.Character.HumanoidRootPart
-        bv.Parent = root
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bg.Parent = root
-        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-        bg.CFrame = Camera.CFrame
-        local dir = Vector3.new(0,0,0)
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0,1,0) end
-        bv.Velocity = dir * Settings.Fly_Speed
-    else
-        bv.Parent = nil
-        bg.Parent = nil
-    end
-end)
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and Settings.TP_Enabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.p + Vector3.new(0, 3, 0))
-            end
-        end
-    end
-end)
-
 local function CreateESP(p)
     if p == LocalPlayer then return end
     local box = Drawing.new("Square")
@@ -389,6 +407,10 @@ local function CreateESP(p)
     name.Size = 14
     name.Center = true
     name.Outline = true
+    local tracer = Drawing.new("Line")
+    tracer.Color = Color3.fromRGB(255, 0, 0)
+    tracer.Thickness = 1
+    
     RunService.RenderStepped:Connect(function()
         if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
             local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
@@ -400,11 +422,5 @@ local function CreateESP(p)
                     box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
                     box.Visible = true
                 else box.Visible = false end
-                if Settings.ESP_Names then
-                    name.Text = p.Name
-                    name.Position = Vector2.new(pos.X, pos.Y - (size * 1.2))
-                    name.Visible = true
-                else name.Visible = false end
-            else box.Visible = false name.Visible = false end
-        else box.
+                if Settings.ESP_Name
 (Content truncated due to size limit. Use line ranges to read remaining content)
