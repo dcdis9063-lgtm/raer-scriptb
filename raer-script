@@ -1,9 +1,10 @@
 --[[
-    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim & Trigger Bot Exact Match)
+    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Xeno Compatible)
     Design: SKECH V2 (Dark/Red) - Premium
-    Compatibilidade: Xeno Executor (R6 & R15)
+    Compatibilidade: Xeno Executor (R6 & R15) - Foco em execução sem falhas.
     
-    Este script recria os painéis 'Silent Aim' e 'Trigger Bot' exatamente como nas imagens.
+    Este script foi reescrito para garantir máxima compatibilidade e execução no Xeno,
+    minimizando o uso de APIs problemáticas e focando na funcionalidade essencial.
 ]]
 
 -- ================================================
@@ -59,9 +60,10 @@ local Mouse = LocalPlayer:GetMouse()
 -- ================================================
 -- INTERFACE GRÁFICA (PREMIUM GUI V5 - FIDELIDADE VISUAL)
 -- ================================================
+-- Usando PlayerGui para maior compatibilidade com Xeno
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_V5_With_TriggerBot"
-ScreenGui.Parent = CoreGui or LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "RAER_V5_Xeno_Definitive"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame")
@@ -407,23 +409,18 @@ local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNpcs, part)
     return closestPlayer and closestPlayer.Character:FindFirstChild(part or "Head")
 end
 
--- Círculos de FOV
+-- Círculos de FOV (Removido Drawing.new para máxima compatibilidade com Xeno)
+-- Se o Xeno suportar Drawing.new, pode ser reativado.
 local SilentFOVCircle, TriggerFOVCircle = nil, nil
-pcall(function()
-    SilentFOVCircle = Drawing.new("Circle")
-    SilentFOVCircle.Thickness = 1; SilentFOVCircle.Color = Settings.AccentColor; SilentFOVCircle.Filled = false; SilentFOVCircle.Transparency = 0.5; SilentFOVCircle.Visible = false
-    TriggerFOVCircle = Drawing.new("Circle")
-    TriggerFOVCircle.Thickness = 1; TriggerFOVCircle.Color = Settings.AccentColor; TriggerFOVCircle.Filled = false; TriggerFOVCircle.Transparency = 0.5; TriggerFOVCircle.Visible = false
-end)
+-- pcall(function()
+--     SilentFOVCircle = Drawing.new("Circle")
+--     SilentFOVCircle.Thickness = 1; SilentFOVCircle.Color = Settings.AccentColor; SilentFOVCircle.Filled = false; SilentFOVCircle.Transparency = 0.5; SilentFOVCircle.Visible = false
+--     TriggerFOVCircle = Drawing.new("Circle")
+--     TriggerFOVCircle.Thickness = 1; TriggerFOVCircle.Color = Settings.AccentColor; TriggerFOVCircle.Filled = false; TriggerFOVCircle.Transparency = 0.5; TriggerFOVCircle.Visible = false
+-- end)
 
 RunService.RenderStepped:Connect(function()
-    -- Atualiza visibilidade do FOV do Silent Aim
-    if SilentFOVCircle then
-        if Settings.Silent_ShowFOV and ActivePage == SilentAimPage and MainFrame.Visible then
-            SilentFOVCircle.Visible = true
-            SilentFOVCircle.Radius = Settings.Silent_FOV
-            local mousePos = UserInputService:GetMouseLocation()
-            SilentFOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y)
-        else
-         
+    -- Atualiza visibilidade do FOV do Silent Aim (apenas se Drawing.new for reativado)
+    -- if SilentFOVCircle then
+    --     if Settings.Silent_ShowFOV and ActiveP
 (Content truncated due to size limit. Use line ranges to read remaining content)
