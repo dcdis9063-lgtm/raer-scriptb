@@ -15,8 +15,37 @@ MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 MainFrame.BorderSizePixel = 2
 MainFrame.Position = UDim2.new(0.5, -400, 0.5, -300) -- Centraliza a GUI
 MainFrame.Size = UDim2.new(0, 800, 0, 600)
-MainFrame.Active = true -- Permite arrastar
-MainFrame.Draggable = true -- Permite arrastar
+
+-- Implementação de arrastar personalizada para o MainFrame
+local UserInputService = game:GetService("UserInputService")
+local isDragging = false
+local dragStart = Vector2.new(0, 0)
+local initialPosition = UDim2.new(0, 0, 0, 0)
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = true
+        dragStart = input.Position
+        initialPosition = MainFrame.Position
+        input.Handled = true
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            initialPosition.X.Scale, initialPosition.X.Offset + delta.X,
+            initialPosition.Y.Scale, initialPosition.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = false
+    end
+end)
 
 -- Título
 TitleLabel.Parent = MainFrame
@@ -161,8 +190,10 @@ local function createSlider(parent, labelText, minValue, maxValue, defaultValue,
 
     local function updateSliderPosition(value)
         local percentage = (value - minValue) / (maxValue - minValue)
-        sliderHandle.Position = UDim2.new(percentage, -sliderHandle.Size.X.Offset / 2, 0, 0)
-        sliderLabel.Text = labelText .. ": " .. tostring(math.floor(value))
+        -- Ensure the handle stays within the sliderBar bounds
+        local handleX = math.clamp(percentage, 0, 1) * (sliderBar.AbsoluteSize.X - sliderHandle.AbsoluteSize.X)
+        sliderHandle.Position = UDim2.new(0, handleX, 0, 0)
+        sliderLabel.Text = labelText .. ": " .. tostring(math.floor(currentValue))
     end
 
     updateSliderPosition(defaultValue)
@@ -182,10 +213,10 @@ local function createSlider(parent, labelText, minValue, maxValue, defaultValue,
     sliderBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             local connection
-            connection = game:GetService("UserInputService").InputChanged:Connect(function(inputChanged)
+            connection = UserInputService.InputChanged:Connect(function(inputChanged)
                 onInputChanged(inputChanged)
             end)
-            game:GetService("UserInputService").InputEnded:Connect(function(inputEnded)
+            UserInputService.InputEnded:Connect(function(inputEnded)
                 if inputEnded.UserInputType == Enum.UserInputType.MouseButton1 then
                     connection:Disconnect()
                 end
@@ -194,6 +225,43 @@ local function createSlider(parent, labelText, minValue, maxValue, defaultValue,
     end)
 
     return sliderFrame, function() return math.floor(currentValue) end -- Retorna o frame e uma função para obter o valor
+end
+
+-- Função auxiliar para criar uma seção com título e layout
+local function createSection(parent, titleText, contentFrame)
+    local sectionFrame = Instance.new("Frame")
+    sectionFrame.Parent = parent
+    sectionFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    sectionFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+    sectionFrame.BorderSizePixel = 1
+
+    local sectionTitle = Instance.new("TextLabel")
+    sectionTitle.Parent = sectionFrame
+    sectionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    sectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    sectionTitle.Font = Enum.Font.SourceSansBold
+    sectionTitle.TextSize = 18
+    sectionTitle.Text = titleText
+    sectionTitle.Size = UDim2.new(1, 0, 0, 30)
+    sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+    sectionTitle.Position = UDim2.new(0, 5, 0, 0)
+
+    local sectionLayout = Instance.new("UIListLayout")
+    sectionLayout.Parent = sectionFrame
+    sectionLayout.FillDirection = Enum.FillDirection.Vertical
+    sectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    sectionLayout.Padding = UDim.new(0, 5)
+    sectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    -- Adiciona um padding para o título dentro do layout da seção
+    local titleSpacer = Instance.new("Frame")
+    titleSpacer.Parent = sectionFrame
+    titleSpacer.Size = UDim2.new(1, 0, 0, 35) -- Espaço para o título
+    titleSpacer.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    titleSpacer.BackgroundTransparency = 1
+    titleSpacer.LayoutOrder = 1
+
+    return sectionFrame, sectionLayout
 end
 
 -- Criar abas e seus conteúdos
@@ -226,36 +294,7 @@ aimLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 aimLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
 -- Seção Aimbot
-local aimbotSection = Instance.new("Frame")
-aimbotSection.Parent = aimContent
-aimbotSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-aimbotSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
-aimbotSection.BorderSizePixel = 1
-
-local aimbotTitle = Instance.new("TextLabel")
-aimbotTitle.Parent = aimbotSection
-aimbotTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-aimbotTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-aimbotTitle.Font = Enum.Font.SourceSansBold
-aimbotTitle.TextSize = 18
-aimbotTitle.Text = "Aimbot"
-aimbotTitle.Size = UDim2.new(1, 0, 0, 30)
-aimbotTitle.TextXAlignment = Enum.TextXAlignment.Left
-aimbotTitle.Position = UDim2.new(0, 5, 0, 0)
-
-local aimbotSectionLayout = Instance.new("UIListLayout")
-aimbotSectionLayout.Parent = aimbotSection
-aimbotSectionLayout.FillDirection = Enum.FillDirection.Vertical
-aimbotSectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-aimbotSectionLayout.Padding = UDim.new(0, 5)
-aimbotSectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-local titlePadding = Instance.new("Frame")
-titlePadding.Parent = aimbotSection
-titlePadding.Size = UDim2.new(1, 0, 0, 35) -- Espaço para o título
-titlePadding.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-titlePadding.BackgroundTransparency = 1
-titlePadding.LayoutOrder = 1
+local aimbotSection, aimbotSectionLayout = createSection(aimContent, "Aimbot")
 
 local aimbotToggle, getAimbotState = createToggle(aimbotSection, "Ativar Aimbot", false, function(state)
     print("Aimbot Ativado: " .. tostring(state))
@@ -268,36 +307,7 @@ end)
 fovSliderFrame.LayoutOrder = 3
 
 -- Seção Precisão (Aimbot)
-local precisionSection = Instance.new("Frame")
-precisionSection.Parent = aimContent
-precisionSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-precisionSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
-precisionSection.BorderSizePixel = 1
-
-local precisionTitle = Instance.new("TextLabel")
-precisionTitle.Parent = precisionSection
-precisionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-precisionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-precisionTitle.Font = Enum.Font.SourceSansBold
-precisionTitle.TextSize = 18
-precisionTitle.Text = "Precisão"
-precisionTitle.Size = UDim2.new(1, 0, 0, 30)
-precisionTitle.TextXAlignment = Enum.TextXAlignment.Left
-precisionTitle.Position = UDim2.new(0, 5, 0, 0)
-
-local precisionSectionLayout = Instance.new("UIListLayout")
-precisionSectionLayout.Parent = precisionSection
-precisionSectionLayout.FillDirection = Enum.FillDirection.Vertical
-precisionSectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-precisionSectionLayout.Padding = UDim.new(0, 5)
-precisionSectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-local precisionTitlePadding = Instance.new("Frame")
-precisionTitlePadding.Parent = precisionSection
-precisionTitlePadding.Size = UDim2.new(1, 0, 0, 35)
-precisionTitlePadding.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-precisionTitlePadding.BackgroundTransparency = 1
-precisionTitlePadding.LayoutOrder = 1
+local precisionSection, precisionSectionLayout = createSection(aimContent, "Precisão")
 
 local verticalSmoothnessSliderFrame, getVerticalSmoothnessValue = createSlider(precisionSection, "Suavidade Vertical", 0, 100, 12, function(value)
     print("Suavidade Vertical: " .. tostring(value))
@@ -315,36 +325,7 @@ end)
 maxDistanceSliderFrame.LayoutOrder = 4
 
 -- Seção Geral (Aimbot)
-local generalSection = Instance.new("Frame")
-generalSection.Parent = aimContent
-generalSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-generalSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
-generalSection.BorderSizePixel = 1
-
-local generalTitle = Instance.new("TextLabel")
-generalTitle.Parent = generalSection
-generalTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-generalTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-generalTitle.Font = Enum.Font.SourceSansBold
-generalTitle.TextSize = 18
-generalTitle.Text = "Geral"
-generalTitle.Size = UDim2.new(1, 0, 0, 30)
-generalTitle.TextXAlignment = Enum.TextXAlignment.Left
-generalTitle.Position = UDim2.new(0, 5, 0, 0)
-
-local generalSectionLayout = Instance.new("UIListLayout")
-generalSectionLayout.Parent = generalSection
-generalSectionLayout.FillDirection = Enum.FillDirection.Vertical
-generalSectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-generalSectionLayout.Padding = UDim.new(0, 5)
-generalSectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-local generalTitlePadding = Instance.new("Frame")
-generalTitlePadding.Parent = generalSection
-generalTitlePadding.Size = UDim2.new(1, 0, 0, 35)
-generalTitlePadding.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-generalTitlePadding.BackgroundTransparency = 1
-generalTitlePadding.LayoutOrder = 1
+local generalSection, generalSectionLayout = createSection(aimContent, "Geral")
 
 local activateAimAssistToggle, getAimAssistState = createToggle(generalSection, "Ativar Assistência de Mira", false, function(state)
     print("Assistência de Mira Ativada: " .. tostring(state))
@@ -357,33 +338,52 @@ end)
 showFovToggle.LayoutOrder = 3
 
 -- Seção Diversos (Aimbot)
-local diverseSection = Instance.new("Frame")
-diverseSection.Parent = aimContent
-diverseSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-diverseSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
-diverseSection.BorderSizePixel = 1
+local diverseSection, diverseSectionLayout = createSection(aimContent, "Diversos")
 
-local diverseTitle = Instance.new("TextLabel")
-diverseTitle.Parent = diverseSection
-diverseTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-diverseTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-diverseTitle.Font = Enum.Font.SourceSansBold
-diverseTitle.TextSize = 18
-diverseTitle.Text = "Diversos"
-diverseTitle.Size = UDim2.new(1, 0, 0, 30)
-diverseTitle.TextXAlignment = Enum.TextXAlignment.Left
-diverseTitle.Position = UDim2.new(0, 5, 0, 0)
+local visibleOnlyToggle, getVisibleOnlyState = createToggle(diverseSection, "Apenas Visíveis", false, function(state)
+    print("Apenas Visíveis: " .. tostring(state))
+end)
+visibleOnlyToggle.LayoutOrder = 2
 
-local diverseSectionLayout = Instance.new("UIListLayout")
-diverseSectionLayout.Parent = diverseSection
-diverseSectionLayout.FillDirection = Enum.FillDirection.Vertical
-diverseSectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-diverseSectionLayout.Padding = UDim.new(0, 5)
-diverseSectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local ignoreNpcsToggle, getIgnoreNpcsState = createToggle(diverseSection, "Ignorar NPCs", false, function(state)
+    print("Ignorar NPCs: " .. tostring(state))
+end)
+ignoreNpcsToggle.LayoutOrder = 3
 
-local diverseTitlePadding = Instance.new("Frame")
-diverseTitlePadding.Parent = diverseSection
-diverseTitlePadding.Size = UDim2.new(1, 0, 0, 35)
-diverseTitlePadding.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-diverseTitlePadding.Ba
+----------------------------------------------------------------------------------------------------
+-- Aba 'Silent Aim'
+----------------------------------------------------------------------------------------------------
+
+-- Layout para a aba Silent Aim
+local silentAimLayout = Instance.new("UIGridLayout")
+silentAimLayout.Parent = silentAimContent
+silentAimLayout.CellSize = UDim2.new(0.48, 0, 0.3, 0)
+silentAimLayout.CellPadding = UDim2.new(0.01, 0, 0.01, 0)
+silentAimLayout.FillDirectionMaxCells = 2
+silentAimLayout.StartCorner = Enum.StartCorner.TopLeft
+silentAimLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+silentAimLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+
+-- Seção Override Config (Silent Aim)
+local overrideConfigSection, overrideConfigLayout = createSection(silentAimContent, "Override config")
+
+local silentAimKeyLabel = Instance.new("TextLabel")
+silentAimKeyLabel.Parent = overrideConfigSection
+silentAimKeyLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+silentAimKeyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+silentAimKeyLabel.Font = Enum.Font.SourceSans
+silentAimKeyLabel.TextSize = 16
+silentAimKeyLabel.Text = "Tecla de Mira Silenciosa: Right Mouse Button - Silent"
+silentAimKeyLabel.Size = UDim2.new(0.9, 0, 0, 30)
+silentAimKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+silentAimKeyLabel.LayoutOrder = 2
+
+-- Seção Geral (Silent Aim)
+local silentAimGeneralSection, silentAimGeneralLayout = createSection(silentAimContent, "Geral")
+
+local activateSilentAimToggle, getSilentAimState = createToggle(silentAimGeneralSection, "Ativar", false, function(state)
+    print("Silent Aim Ativado: " .. tostring(state))
+end)
+activateSilentAimToggle.LayoutOrder = 2
+
 (Content truncated due to size limit. Use line ranges to read remaining content)
