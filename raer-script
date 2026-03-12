@@ -1,28 +1,24 @@
 --[[
-    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim Ultra-Compatible)
+    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim Raw Script)
     Design: SKECH V2 (Dark/Red) - Premium
     Compatibilidade: Xeno Executor (R6 & R15)
     
-    Esta versão é otimizada para máxima compatibilidade com executores como o Xeno.
-    A interface gráfica foi removida para evitar conflitos com o CoreGui e Drawing.new.
-    O Silent Aim é ativado/desativado por uma tecla e as configurações são pré-definidas.
+    Esta é uma versão 'Raw Script' para máxima compatibilidade com o Xeno.
+    Não possui interface gráfica. O Silent Aim é ativado/desativado por uma tecla.
+    As configurações são fixas e a lógica é a mais simples possível para evitar falhas.
 ]]
 
 -- ================================================
--- VARIÁVEIS GLOBAIS (CONFIGURAÇÕES BÁSICAS)
+-- VARIÁVEIS DE CONFIGURAÇÃO (FIXAS)
 -- ================================================
-getgenv().RAER_Settings = {
-    Silent_Enabled = false,
-    Silent_Key = Enum.UserInputType.MouseButton2, -- Botão Direito do Mouse
-    Silent_FOV = 20,
-    Silent_HitChance = 100, -- 100% de chance de acerto
-    Silent_MaxDist = 203,
-    Silent_VisibleOnly = false,
-    Silent_IgnoreNPCs = false,
-    MenuKey = Enum.KeyCode.P -- Tecla para alternar o Silent Aim (sem GUI)
-}
-
-local Settings = getgenv().RAER_Settings
+local SILENT_AIM_ENABLED = false
+local SILENT_AIM_KEY = Enum.UserInputType.MouseButton2 -- Botão Direito do Mouse
+local SILENT_AIM_TOGGLE_KEY = Enum.KeyCode.P -- Tecla para ativar/desativar (sem GUI)
+local SILENT_AIM_FOV = 20
+local SILENT_AIM_MAX_DIST = 203
+local SILENT_AIM_VISIBLE_ONLY = false
+local SILENT_AIM_IGNORE_NPCS = false
+local SILENT_AIM_HIT_CHANCE = 100 -- 100% de chance de acerto
 
 -- ================================================
 -- VARIÁVEIS DE SISTEMA
@@ -35,9 +31,8 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- LÓGICA DO SILENT AIM
+-- FUNÇÃO AUXILIAR: ENCONTRAR JOGADOR MAIS PRÓXIMO
 -- ================================================
-
 local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNPCs)
     local target = nil
     local shortestDistance = fov
@@ -46,7 +41,7 @@ local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNPCs)
             if ignoreNPCs and not player:IsA("Player") then continue end
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
             if not hum or hum.Health <= 0 then continue end
-            local targetPart = player.Character:FindFirstChild("Head") -- Silent Aim foca na cabeça por padrão
+            local targetPart = player.Character:FindFirstChild("Head") -- Foca na cabeça por padrão
             if targetPart then
                 local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
                 if onScreen then
@@ -64,13 +59,15 @@ local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNPCs)
     return target
 end
 
+-- ================================================
+-- LÓGICA PRINCIPAL DO SILENT AIM (AIM ASSIST)
+-- ================================================
 RunService.RenderStepped:Connect(function()
-    if Settings.Silent_Enabled and UserInputService:IsMouseButtonPressed(Settings.Silent_Key) then
-        if math.random(1, 100) <= Settings.Silent_HitChance then
-            local target = GetClosestPlayer(Settings.Silent_FOV, Settings.Silent_MaxDist, Settings.Silent_VisibleOnly, Settings.Silent_IgnoreNPCs)
+    if SILENT_AIM_ENABLED and UserInputService:IsMouseButtonPressed(SILENT_AIM_KEY) then
+        if math.random(1, 100) <= SILENT_AIM_HIT_CHANCE then
+            local target = GetClosestPlayer(SILENT_AIM_FOV, SILENT_AIM_MAX_DIST, SILENT_AIM_VISIBLE_ONLY, SILENT_AIM_IGNORE_NPCS)
             if target then
-                -- Implementação básica de Silent Aim: Redireciona o mouse para o alvo
-                -- Esta é uma simulação que pode funcionar em alguns contextos.
+                -- Redireciona o mouse para o alvo
                 local pos, onScreen = Camera:WorldToViewportPoint(target.Position)
                 if onScreen then
                     Mouse.X = pos.X
@@ -81,14 +78,14 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Lógica para alternar o Silent Aim com a tecla MenuKey (sem GUI)
+-- ================================================
+-- LÓGICA DE ATIVAÇÃO/DESATIVAÇÃO POR TECLA
+-- ================================================
 UserInputService.InputBegan:Connect(function(input, processed)
-    if input.KeyCode == Settings.MenuKey and not processed then
-        Settings.Silent_Enabled = not Settings.Silent_Enabled
-        print("[RAER V5 SILENT ULTRA-COMPATIBLE] Silent Aim: " .. tostring(Settings.Silent_Enabled))
+    if input.KeyCode == SILENT_AIM_TOGGLE_KEY and not processed then
+        SILENT_AIM_ENABLED = not SILENT_AIM_ENABLED
+        print("[RAER V5 SILENT RAW SCRIPT] Silent Aim: " .. tostring(SILENT_AIM_ENABLED))
     end
 end)
 
-print("[RAER V5 SILENT ULTRA-COMPATIBLE] Carregado com sucesso! Pressione 'P' para alternar o Silent Aim.")
-
-
+print("[RAER V5 SILENT RAW SCRIPT] Carregado com sucesso! Pressione 'P' para alternar o Silent Aim.")
