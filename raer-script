@@ -1,91 +1,17 @@
 --[[
-    RAER ULTRA CHEAT V3 | AUTO-INSTALLER & CONFIGURATOR
+    RAER ULTRA CHEAT V3 | VERSÃO FINAL UNIFICADA
     Desenvolvido para: Xeno Executor
     
-    Este script serve para INSTALAR e CONFIGURAR o seu link de auto-atualização.
-    Ele criará o arquivo final do cheat já com o seu link embutido.
+    Este é o código que você deve hospedar no seu link do GitHub.
+    Comando para executar no Xeno:
+    loadstring(game:HttpGet("SEU_LINK_RAW_AQUI"))()
 ]]
 
 -- ================================================
--- INTERFACE DE INSTALAÇÃO (GUI)
+-- CONFIGURAÇÕES (Editáveis no VS Code)
 -- ================================================
-local CoreGui = game:GetService("CoreGui")
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Installer"
-ScreenGui.Parent = CoreGui
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.Size = UDim2.new(0, 300, 0, 200)
-MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
-MainFrame.BorderSizePixel = 0
-
-local Title = Instance.new("TextLabel")
-Title.Parent = MainFrame
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-Title.Text = "RAER V3 - INSTALADOR"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-
-local InfoLabel = Instance.new("TextLabel")
-InfoLabel.Parent = MainFrame
-InfoLabel.Size = UDim2.new(1, -20, 0, 40)
-InfoLabel.Position = UDim2.new(0, 10, 0, 50)
-InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "Insira o seu link do GitHub/Pastebin abaixo para configurar o Auto-Update:"
-InfoLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-InfoLabel.TextWrapped = true
-InfoLabel.Font = Enum.Font.Gotham
-InfoLabel.TextSize = 12
-
-local LinkInput = Instance.new("TextBox")
-LinkInput.Parent = MainFrame
-LinkInput.Size = UDim2.new(1, -20, 0, 30)
-LinkInput.Position = UDim2.new(0, 10, 0, 100)
-LinkInput.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-LinkInput.Text = "https://raw.githubusercontent.com/..."
-LinkInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-LinkInput.Font = Enum.Font.Gotham
-LinkInput.TextSize = 12
-LinkInput.ClearTextOnFocus = true
-
-local InstallBtn = Instance.new("TextButton")
-InstallBtn.Parent = MainFrame
-InstallBtn.Size = UDim2.new(1, -20, 0, 40)
-InstallBtn.Position = UDim2.new(0, 10, 0, 145)
-InstallBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-InstallBtn.Text = "INSTALAR E CONFIGURAR"
-InstallBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-InstallBtn.Font = Enum.Font.GothamBold
-InstallBtn.TextSize = 14
-
--- ================================================
--- LÓGICA DE INSTALAÇÃO
--- ================================================
-InstallBtn.MouseButton1Click:Connect(function()
-    local userLink = LinkInput.Text
-    
-    if userLink == "" or userLink == "https://raw.githubusercontent.com/..." then
-        InstallBtn.Text = "ERRO: INSIRA UM LINK VÁLIDO!"
-        InstallBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-        wait(2)
-        InstallBtn.Text = "INSTALAR E CONFIGURAR"
-        InstallBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-        return
-    end
-
-    InstallBtn.Text = "CONFIGURANDO..."
-    wait(1)
-
-    -- O script de instalação gera o código final do cheat com o link do usuário
-    local finalScript = [[
--- RAER ULTRA CHEAT V3 (CONFIGURADO)
 local Settings = {
-    Update_URL = "]] .. userLink .. [[",
-    Update_Enabled = true,
+    -- AIMBOT (MODO APELÃO)
     Aim_Enabled = true,
     Aim_FOV = 300,
     Aim_Part = "Head",
@@ -93,41 +19,261 @@ local Settings = {
     Aim_FriendCheck = true,
     Aim_VisibleCheck = false,
     Aim_Key = Enum.UserInputType.MouseButton2,
+    
+    -- ESP
     ESP_Enabled = true,
     ESP_Box = true,
     ESP_Names = true,
+    
+    -- FLY
     Fly_Enabled = false,
     Fly_Speed = 80,
+
+    -- SPEED HACK
     Speed_Enabled = false,
     Walk_Speed = 100,
+    
+    -- GERAL
     MenuKey = Enum.KeyCode.P,
     FlyKey = Enum.KeyCode.F
 }
 
--- Lógica de Auto-Update
-local success, content = pcall(function() return game:HttpGet(Settings.Update_URL) end)
-if success and content then
-    print("[RAER] Versão mais recente carregada!")
-    loadstring(content)()
-else
-    warn("[RAER] Erro ao atualizar. Verifique o link.")
-end
-]]
+-- ================================================
+-- VARIÁVEIS DE SISTEMA
+-- ================================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 
-    -- No Xeno, podemos salvar o arquivo configurado na pasta do executor
-    if writefile then
-        writefile("raer_configurado.lua", finalScript)
-        InstallBtn.Text = "INSTALADO COM SUCESSO!"
-        InstallBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
-        print("[RAER] O arquivo 'raer_configurado.lua' foi criado na sua pasta do Xeno.")
-    else
-        -- Se o executor não suportar writefile, mostramos no console para copiar
-        print("\n--- COPIE O CÓDIGO ABAIXO E SALVE NO SEU VS CODE ---\n")
-        print(finalScript)
-        print("\n--- FIM DO CÓDIGO ---")
-        InstallBtn.Text = "VEJA O CONSOLE (F9)!"
+-- FOV Circle
+local FOV_Circle = Drawing.new("Circle")
+FOV_Circle.Thickness = 2
+FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
+FOV_Circle.Filled = false
+FOV_Circle.Transparency = 1
+FOV_Circle.Visible = false
+
+-- ================================================
+-- LÓGICA DO AIMBOT (LOCK-ON FORÇADO)
+-- ================================================
+local function GetClosestPlayer()
+    local target = nil
+    local shortestDistance = Settings.Aim_FOV
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(Settings.Aim_Part) then
+            if Settings.Aim_TeamCheck and player.Team == LocalPlayer.Team then continue end
+            if Settings.Aim_FriendCheck and LocalPlayer:IsFriendsWith(player.UserId) then continue end
+            local hum = player.Character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
+            local targetPart = player.Character[Settings.Aim_Part]
+            local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+            if onScreen then
+                local mousePos = Vector2.new(Mouse.X, Mouse.Y + 36)
+                local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    target = player
+                end
+            end
+        end
     end
+    return target
+end
 
-    wait(3)
-    ScreenGui:Destroy()
+RunService.RenderStepped:Connect(function()
+    if Settings.Aim_Enabled then
+        FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+        FOV_Circle.Radius = Settings.Aim_FOV
+        FOV_Circle.Visible = true
+        if UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
+            local target = GetClosestPlayer()
+            if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character[Settings.Aim_Part].Position)
+            end
+        end
+    else
+        FOV_Circle.Visible = false
+    end
 end)
+
+-- ================================================
+-- LÓGICA DO SPEED HACK
+-- ================================================
+RunService.Heartbeat:Connect(function()
+    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
+    end
+end)
+
+-- ================================================
+-- LÓGICA DO FLY
+-- ================================================
+local bv = Instance.new("BodyVelocity")
+local bg = Instance.new("BodyGyro")
+RunService.RenderStepped:Connect(function()
+    if Settings.Fly_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LocalPlayer.Character.HumanoidRootPart
+        bv.Parent = root
+        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bg.Parent = root
+        bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bg.CFrame = Camera.CFrame
+        local dir = Vector3.new(0,0,0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0,1,0) end
+        bv.Velocity = dir * Settings.Fly_Speed
+    else
+        bv.Parent = nil
+        bg.Parent = nil
+    end
+end)
+
+-- ================================================
+-- INTERFACE GRÁFICA (PAINEL RAER V3)
+-- ================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RAER_Panel_V3"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.Size = UDim2.new(0, 200, 0, 380)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.BorderSizePixel = 0
+
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Title.Text = "RAER CHEAT V3"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+
+local Container = Instance.new("ScrollingFrame")
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 5, 0, 40)
+Container.Size = UDim2.new(1, -10, 1, -45)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 0, 500)
+Container.ScrollBarThickness = 2
+
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = Container
+UIList.Padding = UDim.new(0, 5)
+
+local function AddToggle(text, key)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Container
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(function()
+        Settings[key] = not Settings[key]
+        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+    end)
+end
+
+-- Botões
+AddToggle("Aimbot Master", "Aim_Enabled")
+AddToggle("Ignorar Amigos", "Aim_FriendCheck")
+AddToggle("ESP Master", "ESP_Enabled")
+AddToggle("ESP Box", "ESP_Box")
+AddToggle("Fly (F)", "Fly_Enabled")
+AddToggle("Speed Hack", "Speed_Enabled")
+
+-- Slider de FOV
+local FOVLabel = Instance.new("TextLabel")
+FOVLabel.Parent = Container
+FOVLabel.Size = UDim2.new(1, 0, 0, 20)
+FOVLabel.BackgroundTransparency = 1
+FOVLabel.Text = "FOV: " .. Settings.Aim_FOV
+FOVLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVLabel.Font = Enum.Font.Gotham
+
+local FOVBtnPlus = Instance.new("TextButton")
+FOVBtnPlus.Parent = Container
+FOVBtnPlus.Size = UDim2.new(1, 0, 0, 25)
+FOVBtnPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+FOVBtnPlus.Text = "Aumentar FOV (+50)"
+FOVBtnPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVBtnPlus.Font = Enum.Font.Gotham
+FOVBtnPlus.MouseButton1Click:Connect(function()
+    Settings.Aim_FOV = Settings.Aim_FOV + 50
+    FOVLabel.Text = "FOV: " .. Settings.Aim_FOV
+end)
+
+-- Slider de Speed
+local SpeedLabel = Instance.new("TextLabel")
+SpeedLabel.Parent = Container
+SpeedLabel.Size = UDim2.new(1, 0, 0, 20)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.Text = "Velocidade: " .. Settings.Walk_Speed
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedLabel.Font = Enum.Font.Gotham
+
+local SpeedBtnPlus = Instance.new("TextButton")
+SpeedBtnPlus.Parent = Container
+SpeedBtnPlus.Size = UDim2.new(1, 0, 0, 25)
+SpeedBtnPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedBtnPlus.Text = "Aumentar Speed (+20)"
+SpeedBtnPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtnPlus.Font = Enum.Font.Gotham
+SpeedBtnPlus.MouseButton1Click:Connect(function()
+    Settings.Walk_Speed = Settings.Walk_Speed + 20
+    SpeedLabel.Text = "Velocidade: " .. Settings.Walk_Speed
+end)
+
+-- Atalhos
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Settings.MenuKey then
+        MainFrame.Visible = not MainFrame.Visible
+    elseif input.KeyCode == Settings.FlyKey then
+        Settings.Fly_Enabled = not Settings.Fly_Enabled
+    end
+end)
+
+-- ESP OTIMIZADO
+local function CreateESP(p)
+    if p == LocalPlayer then return end
+    local box = Drawing.new("Square")
+    box.Color = Color3.fromRGB(255, 0, 0)
+    box.Thickness = 1
+    RunService.RenderStepped:Connect(function()
+        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+            local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local dist = (Camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                local size = (Camera.ViewportSize.Y / dist) * 2
+                if Settings.ESP_Box then
+                    box.Size = Vector2.new(size * 1.5, size * 2)
+                    box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
+                    box.Visible = true
+                else box.Visible = false end
+            else box.Visible = false end
+        else box.Visible = false end
+    end)
+end
+Players.PlayerAdded:Connect(CreateESP)
+for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
+
+-- Limpar logs finais
+print = function() end
+warn = function() end
+error = function() end
