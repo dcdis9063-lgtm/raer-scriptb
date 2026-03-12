@@ -1,52 +1,42 @@
-raer_v4_ultimate.lua
 --[[
-    RAER ULTRA CHEAT V4 | ULTIMATE EDITION
-    Desenvolvido para: Xeno Executor
+    RAER ULTRA CHEAT V4 | XENO COMPATIBLE EDITION
+    Versão: Corrigida e Otimizada para Xeno
     
-    Novas Funções:
-    - Invisibilidade (Local)
+    Funções:
+    - Aimbot Lock-On (Botão Direito)
+    - Seletor de Parte (Cabeça/Peito/Pé)
+    - Speed Hack & Fly
+    - ESP Box & Names
     - Teleport (Ctrl + Click)
-    - Seletor de Parte do Corpo (Cabeça, Peito, Pé)
-    - Speed, Fly, ESP, Aimbot Apelão
 ]]
 
 -- ================================================
 -- CONFIGURAÇÕES (Editáveis no VS Code)
 -- ================================================
 local Settings = {
-    -- AIMBOT
     Aim_Enabled = true,
     Aim_FOV = 300,
-    Aim_Part = "Head", -- "Head", "HumanoidRootPart", "LeftFoot"
+    Aim_Part = "Head",
     Aim_TeamCheck = false,
     Aim_FriendCheck = true,
-    Aim_VisibleCheck = false,
     Aim_Key = Enum.UserInputType.MouseButton2,
     
-    -- ESP
     ESP_Enabled = true,
     ESP_Box = true,
     ESP_Names = true,
     
-    -- FLY
     Fly_Enabled = false,
     Fly_Speed = 80,
-
-    -- SPEED HACK
     Speed_Enabled = false,
     Walk_Speed = 100,
-
-    -- NOVAS FUNÇÕES V4
-    Invis_Enabled = false,
-    TP_Enabled = true, -- Ctrl + Click para Teleportar
+    TP_Enabled = true,
     
-    -- GERAL
     MenuKey = Enum.KeyCode.P,
     FlyKey = Enum.KeyCode.F
 }
 
 -- ================================================
--- VARIÁVEIS DE SISTEMA
+-- VARIÁVEIS DE SISTEMA (Protegidas)
 -- ================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -56,16 +46,19 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
--- FOV Circle
-local FOV_Circle = Drawing.new("Circle")
-FOV_Circle.Thickness = 2
-FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
-FOV_Circle.Filled = false
-FOV_Circle.Transparency = 1
-FOV_Circle.Visible = false
+-- FOV Circle (Usando pcall para evitar erro se o executor não suportar Drawing)
+local FOV_Circle = nil
+pcall(function()
+    FOV_Circle = Drawing.new("Circle")
+    FOV_Circle.Thickness = 2
+    FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
+    FOV_Circle.Filled = false
+    FOV_Circle.Transparency = 1
+    FOV_Circle.Visible = false
+end)
 
 -- ================================================
--- LÓGICA DO AIMBOT (LOCK-ON FORÇADO)
+-- LÓGICA DO AIMBOT (LOCK-ON)
 -- ================================================
 local function GetClosestPlayer()
     local target = nil
@@ -76,6 +69,7 @@ local function GetClosestPlayer()
             if Settings.Aim_FriendCheck and LocalPlayer:IsFriendsWith(player.UserId) then continue end
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
             if not hum or hum.Health <= 0 then continue end
+            
             local targetPart = player.Character[Settings.Aim_Part]
             local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
             if onScreen then
@@ -93,30 +87,19 @@ end
 
 RunService.RenderStepped:Connect(function()
     if Settings.Aim_Enabled then
-        FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-        FOV_Circle.Radius = Settings.Aim_FOV
-        FOV_Circle.Visible = true
+        if FOV_Circle then
+            FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+            FOV_Circle.Radius = Settings.Aim_FOV
+            FOV_Circle.Visible = true
+        end
         if UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
             local target = GetClosestPlayer()
             if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
                 Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character[Settings.Aim_Part].Position)
             end
         end
-    else
+    elseif FOV_Circle then
         FOV_Circle.Visible = false
-    end
-end)
-
--- ================================================
--- LÓGICA DE INVISIBILIDADE (LOCAL)
--- ================================================
-RunService.RenderStepped:Connect(function()
-    if Settings.Invis_Enabled and LocalPlayer.Character then
-        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") or part:IsA("Decal") then
-                part.Transparency = 0.5 -- Fica semi-transparente para você, mas pode bugar o anti-cheat de alguns jogos
-            end
-        end
     end
 end)
 
@@ -126,29 +109,24 @@ end)
 UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and Settings.TP_Enabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
         if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            local pos = Mouse.Hit.p
             if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.p + Vector3.new(0, 3, 0))
             end
         end
     end
 end)
 
 -- ================================================
--- LÓGICA DO SPEED HACK
+-- LÓGICA DO SPEED HACK & FLY
 -- ================================================
+local bv = Instance.new("BodyVelocity")
+local bg = Instance.new("BodyGyro")
+
 RunService.Heartbeat:Connect(function()
     if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
     end
-end)
-
--- ================================================
--- LÓGICA DO FLY
--- ================================================
-local bv = Instance.new("BodyVelocity")
-local bg = Instance.new("BodyGyro")
-RunService.RenderStepped:Connect(function()
+    
     if Settings.Fly_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local root = LocalPlayer.Character.HumanoidRootPart
         bv.Parent = root
@@ -171,17 +149,17 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- ================================================
--- INTERFACE GRÁFICA (PAINEL RAER V4)
+-- INTERFACE GRÁFICA (PAINEL RAER V4 CORRIGIDO)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Panel_V4"
+ScreenGui.Name = "RAER_Xeno"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-MainFrame.Size = UDim2.new(0, 220, 0, 450)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.Size = UDim2.new(0, 200, 0, 400)
 MainFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -191,7 +169,7 @@ local Title = Instance.new("TextLabel")
 Title.Parent = MainFrame
 Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-Title.Text = "RAER CHEAT V4"
+Title.Text = "RAER V4 FIXED"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
@@ -201,7 +179,7 @@ Container.Parent = MainFrame
 Container.Position = UDim2.new(0, 5, 0, 40)
 Container.Size = UDim2.new(1, -10, 1, -45)
 Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 650)
+Container.CanvasSize = UDim2.new(0, 0, 0, 550)
 Container.ScrollBarThickness = 2
 
 local UIList = Instance.new("UIListLayout")
@@ -223,16 +201,12 @@ local function AddToggle(text, key)
     end)
 end
 
--- Botões
 AddToggle("Aimbot Master", "Aim_Enabled")
 AddToggle("Ignorar Amigos", "Aim_FriendCheck")
 AddToggle("ESP Master", "ESP_Enabled")
 AddToggle("Fly (F)", "Fly_Enabled")
 AddToggle("Speed Hack", "Speed_Enabled")
-AddToggle("Invisibilidade (Local)", "Invis_Enabled")
-AddToggle("Teleport (Ctrl+Click)", "TP_Enabled")
 
--- Seletor de Parte do Corpo
 local PartLabel = Instance.new("TextLabel")
 PartLabel.Parent = Container
 PartLabel.Size = UDim2.new(1, 0, 0, 20)
@@ -259,27 +233,6 @@ AddPartBtn("MIRA: CABEÇA", "Head")
 AddPartBtn("MIRA: PEITO", "HumanoidRootPart")
 AddPartBtn("MIRA: PÉ", "LeftFoot")
 
--- Sliders
-local FOVLabel = Instance.new("TextLabel")
-FOVLabel.Parent = Container
-FOVLabel.Size = UDim2.new(1, 0, 0, 20)
-FOVLabel.BackgroundTransparency = 1
-FOVLabel.Text = "FOV: " .. Settings.Aim_FOV
-FOVLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-FOVLabel.Font = Enum.Font.Gotham
-
-local FOVBtnPlus = Instance.new("TextButton")
-FOVBtnPlus.Parent = Container
-FOVBtnPlus.Size = UDim2.new(1, 0, 0, 25)
-FOVBtnPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-FOVBtnPlus.Text = "Aumentar FOV (+50)"
-FOVBtnPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
-FOVBtnPlus.Font = Enum.Font.Gotham
-FOVBtnPlus.MouseButton1Click:Connect(function()
-    Settings.Aim_FOV = Settings.Aim_FOV + 50
-    FOVLabel.Text = "FOV: " .. Settings.Aim_FOV
-end)
-
 -- Atalhos
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
@@ -290,16 +243,16 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- ESP OTIMIZADO
+-- ESP OTIMIZADO (Protegido)
 local function CreateESP(p)
     if p == LocalPlayer then return end
-    local box = Drawing.new("Square")
-    box.Color = Color3.fromRGB(255, 0, 0)
-    box.Thickness = 1
+    local box = nil
+    pcall(function() box = Drawing.new("Square") box.Color = Color3.fromRGB(255, 0, 0) box.Thickness = 1 end)
+    
     RunService.RenderStepped:Connect(function()
         if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
             local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
-            if onScreen then
+            if onScreen and box then
                 local dist = (Camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
                 local size = (Camera.ViewportSize.Y / dist) * 2
                 if Settings.ESP_Box then
@@ -307,8 +260,8 @@ local function CreateESP(p)
                     box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
                     box.Visible = true
                 else box.Visible = false end
-            else box.Visible = false end
-        else box.Visible = false end
+            elseif box then box.Visible = false end
+        elseif box then box.Visible = false end
     end)
 end
 Players.PlayerAdded:Connect(CreateESP)
