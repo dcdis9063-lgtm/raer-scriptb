@@ -1,417 +1,382 @@
---[[
-    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX
-    Design: SKECH V2 (Dark/Red) - Premium
-    Compatibilidade: Xeno Executor (R6 & R15)
-    
-    CORREÇÃO: Lógica de comunicação direta para garantir que botões e sliders funcionem.
-]]
+--[[ Script para Painel de Cheat do Roblox (Xeno) ]]
 
--- ================================================
--- VARIÁVEIS GLOBAIS (PARA GARANTIR FUNCIONAMENTO)
--- ================================================
-getgenv().RAER_Settings = {
-    -- AIM
-    Aim_Enabled = false,
-    Aim_Key = Enum.UserInputType.MouseButton2,
-    Aim_Part = "Head", -- "Head", "Torso", "Feet"
-    Aim_FOV = 72,
-    Aim_Smooth_V = 12,
-    Aim_Smooth_H = 12,
-    Aim_MaxDist = 240,
-    Aim_VisibleOnly = true,
-    Aim_IgnoreNPCs = true,
-    Show_FOV = true,
-    
-    -- VISUALS
-    ESP_Enabled = false,
-    ESP_Box = false,
-    ESP_Names = false,
-    
-    -- EXPLOITS
-    Speed_Enabled = false,
-    Walk_Speed = 100,
-    Fly_Enabled = false,
-    Fly_Speed = 80,
-    Fling_Enabled = false,
-    
-    -- TELEPORT
-    TP_Enabled = false,
-    
-    -- GERAL
-    MenuKey = Enum.KeyCode.P
-}
-
-local Settings = getgenv().RAER_Settings
-
--- ================================================
--- VARIÁVEIS DE SISTEMA
--- ================================================
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-
--- ================================================
--- INTERFACE GRÁFICA (PREMIUM GUI V5 - FIXED)
--- ================================================
+-- Cria a janela principal
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_V5_Definitive"
-ScreenGui.Parent = CoreGui or LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
+local TitleLabel = Instance.new("TextLabel")
+
+-- Configurações da janela
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Size = UDim2.new(0, 650, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Position = UDim2.new(0.5, -400, 0.5, -300) -- Centraliza a GUI
+MainFrame.Size = UDim2.new(0, 800, 0, 600)
+MainFrame.Active = true -- Permite arrastar
+MainFrame.Draggable = true -- Permite arrastar
 
--- Borda Vermelha Lateral
-local AccentLine = Instance.new("Frame")
-AccentLine.Parent = MainFrame
-AccentLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-AccentLine.Size = UDim2.new(0, 2, 1, 0)
-AccentLine.Position = UDim2.new(0, 140, 0, 0)
-AccentLine.BorderSizePixel = 0
+-- Título
+TitleLabel.Parent = MainFrame
+TitleLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextSize = 20
+TitleLabel.Text = "Painel de Cheat v1.0"
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.TextWrapped = true
+TitleLabel.Position = UDim2.new(0, 5, 0, 0)
 
--- Sidebar
-local Sidebar = Instance.new("Frame")
-Sidebar.Name = "Sidebar"
-Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-Sidebar.Size = UDim2.new(0, 140, 1, 0)
-Sidebar.BorderSizePixel = 0
+-- Abas (Menu Lateral)
+local TabsFrame = Instance.new("Frame")
+TabsFrame.Parent = MainFrame
+TabsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TabsFrame.Size = UDim2.new(0, 150, 1, -40) -- 150 de largura, altura total menos o título
+TabsFrame.Position = UDim2.new(0, 0, 0, 40)
 
-local Logo = Instance.new("TextLabel")
-Logo.Parent = Sidebar
-Logo.Size = UDim2.new(1, 0, 0, 60)
-Logo.BackgroundTransparency = 1
-Logo.Text = "RAER"
-Logo.TextColor3 = Color3.fromRGB(255, 0, 0)
-Logo.Font = Enum.Font.GothamBold
-Logo.TextSize = 28
+local TabsLayout = Instance.new("UIListLayout")
+TabsLayout.Parent = TabsFrame
+TabsLayout.FillDirection = Enum.FillDirection.Vertical
+TabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabsLayout.Padding = UDim.new(0, 5)
 
--- Container de Abas
-local TabContainer = Instance.new("Frame")
-TabContainer.Name = "TabContainer"
-TabContainer.Parent = MainFrame
-TabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TabContainer.Position = UDim2.new(0, 150, 0, 10)
-TabContainer.Size = UDim2.new(1, -160, 1, -20)
-TabContainer.BackgroundTransparency = 1
+-- Conteúdo das Abas
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ContentFrame.Size = UDim2.new(1, -150, 1, -40) -- Largura total menos a aba, altura total menos o título
+ContentFrame.Position = UDim2.new(0, 150, 0, 40)
+ContentFrame.ClipsDescendants = true -- Garante que o conteúdo não vaze
 
-local Pages = {}
-local function CreatePage(name)
-    local Page = Instance.new("ScrollingFrame")
-    Page.Name = name .. "Page"
-    Page.Parent = TabContainer
-    Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.BackgroundTransparency = 1
-    Page.Visible = false
-    Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 600)
-    local UIList = Instance.new("UIListLayout")
-    UIList.Parent = Page
-    UIList.Padding = UDim.new(0, 15)
-    UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    Pages[name] = Page
-    return Page
-end
+-- Dicionário para armazenar os frames de conteúdo de cada aba
+local tabContents = {}
+local currentTab = nil
 
-local AimPage = CreatePage("Aim")
-local VisualsPage = CreatePage("Visuals")
-local MiscPage = CreatePage("Miscellaneous")
-AimPage.Visible = true
+-- Função para criar um botão de aba
+local function createTabButton(name)
+    local TabButton = Instance.new("TextButton")
+    TabButton.Parent = TabsFrame
+    TabButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TabButton.Font = Enum.Font.SourceSans
+    TabButton.TextSize = 16
+    TabButton.Text = name
+    TabButton.Size = UDim2.new(1, -10, 0, 30) -- -10 para ter um pequeno padding lateral
+    TabButton.AutoButtonColor = false
+    TabButton.BorderColor3 = Color3.fromRGB(20, 20, 20)
+    TabButton.BorderSizePixel = 1
 
--- Categorias na Sidebar
-local function AddCategory(name, yPos)
-    local label = Instance.new("TextLabel")
-    label.Parent = Sidebar
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, yPos)
-    label.BackgroundTransparency = 1
-    label.Text = name
-    label.TextColor3 = Color3.fromRGB(100, 100, 100)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-end
+    -- Frame de conteúdo para esta aba
+    local ContentPage = Instance.new("Frame")
+    ContentPage.Parent = ContentFrame
+    ContentPage.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    ContentPage.Size = UDim2.new(1, 0, 1, 0)
+    ContentPage.Position = UDim2.new(0, 0, 0, 0)
+    ContentPage.Visible = false -- Esconde por padrão
+    tabContents[name] = ContentPage
 
-AddCategory("Aim", 70)
-AddCategory("Visuals", 180)
-AddCategory("Miscellaneous", 290)
-
-local function AddTabButton(name, page, yPos)
-    local btn = Instance.new("TextButton")
-    btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, -10, 0, 30)
-    btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    btn.BackgroundTransparency = 1
-    btn.BorderSizePixel = 0
-    btn.Text = "  " .. name
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(Pages) do p.Visible = false end
-        page.Visible = true
-        for _, b in pairs(Sidebar:GetChildren()) do
-            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 200, 200) end
+    TabButton.MouseButton1Click:Connect(function()
+        if currentTab then
+            tabContents[currentTab].Visible = false
+            -- Resetar cor do botão da aba anterior
+            TabsFrame[currentTab .. "TabButton"].BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            TabsFrame[currentTab .. "TabButton"].BorderColor3 = Color3.fromRGB(20, 20, 20)
         end
-        btn.TextColor3 = Color3.fromRGB(255, 0, 0)
+        ContentPage.Visible = true
+        currentTab = name
+        -- Destacar o botão da aba atual
+        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+        TabButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
     end)
+
+    TabButton.Name = name .. "TabButton" -- Nome para fácil acesso
+    return TabButton, ContentPage
 end
 
-AddTabButton("Aimbot", AimPage, 95)
-AddTabButton("Silent Aim", AimPage, 125)
-AddTabButton("Trigger Bot", AimPage, 155)
-AddTabButton("Players", VisualsPage, 205)
-AddTabButton("Vehicles", VisualsPage, 235)
-AddTabButton("World", VisualsPage, 265)
-AddTabButton("Exploits", MiscPage, 315)
-AddTabButton("Teleport", MiscPage, 345)
-AddTabButton("Configurações", MiscPage, 375)
+-- Criar abas e seus conteúdos
+local aimTabButton, aimContent = createTabButton("Aim")
+local silentAimTabButton, silentAimContent = createTabButton("Silent Aim") -- Nova aba Silent Aim
+local triggerBotTabButton, triggerBotContent = createTabButton("Trigger Bot") -- Nova aba Trigger Bot
+local visualsTabButton, visualsContent = createTabButton("Visuals")
+local playersTabButton, playersContent = createTabButton("Players") -- Nova aba Players
+local vehiclesTabButton, vehiclesContent = createTabButton("Vehicles") -- Nova aba Vehicles
+local worldTabButton, worldContent = createTabButton("World") -- Nova aba World
+local exploitsTabButton, exploitsContent = createTabButton("Exploits") -- Nova aba Exploits
+local teleportTabButton, teleportContent = createTabButton("Teleport") -- Nova aba Teleport
+local configTabButton, configContent = createTabButton("Configurações")
 
-local function CreateSection(parent, title, sizeY)
-    local section = Instance.new("Frame")
-    section.Size = UDim2.new(0.95, 0, 0, sizeY)
-    section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    section.BorderSizePixel = 1
-    section.BorderColor3 = Color3.fromRGB(40, 40, 40)
-    section.Parent = parent
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -10, 0, 25)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = title
-    label.TextColor3 = Color3.fromRGB(150, 150, 150)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = section
-    return section
-end
+-- Selecionar a primeira aba por padrão
+aimTabButton:MouseButton1Click()
 
--- Aba Aimbot - Seção Sobrescrever Configuração
-local AimConfig = CreateSection(AimPage, "Sobrescrever configuração", 100)
-local PartLabel = Instance.new("TextLabel")
-PartLabel.Size = UDim2.new(1, -20, 0, 20)
-PartLabel.Position = UDim2.new(0, 10, 0, 30)
-PartLabel.BackgroundTransparency = 1
-PartLabel.Text = "Ponto de Acerto"
-PartLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-PartLabel.Font = Enum.Font.Gotham
-PartLabel.TextSize = 12
-PartLabel.TextXAlignment = Enum.TextXAlignment.Left
-PartLabel.Parent = AimConfig
+----------------------------------------------------------------------------------------------------
+-- Aba 'Aim'
+----------------------------------------------------------------------------------------------------
 
-local PartBtn = Instance.new("TextButton")
-PartBtn.Size = UDim2.new(0.9, 0, 0, 25)
-PartBtn.Position = UDim2.new(0.05, 0, 0, 55)
-PartBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-PartBtn.Text = "Cabeça"
-PartBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-PartBtn.BorderSizePixel = 0
-PartBtn.Parent = AimConfig
-PartBtn.MouseButton1Click:Connect(function()
-    local parts = {["Cabeça"] = "Head", ["Peito"] = "Torso", ["Pé"] = "Feet"}
-    local names = {"Cabeça", "Peito", "Pé"}
-    local currentName = "Cabeça"
-    for k, v in pairs(parts) do if v == Settings.Aim_Part then currentName = k end end
-    local idx = table.find(names, currentName) or 1
-    idx = idx + 1
-    if idx > #names then idx = 1 end
-    Settings.Aim_Part = parts[names[idx]]
-    PartBtn.Text = names[idx]
-end)
+-- Seção Aimbot
+local aimbotSection = Instance.new("Frame")
+aimbotSection.Parent = aimContent
+aimbotSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+aimbotSection.Size = UDim2.new(0.48, 0, 0.3, 0)
+aimbotSection.Position = UDim2.new(0.01, 0, 0.01, 0)
+aimbotSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
+aimbotSection.BorderSizePixel = 1
 
--- Aba Aimbot - Seção Geral
-local AimGeneral = CreateSection(AimPage, "Geral", 80)
-local function AddCheckbox(parent, text, settingKey, yPos)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 25)
-    btn.Position = UDim2.new(0, 10, 0, yPos)
-    btn.BackgroundTransparency = 1
-    btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
-    btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 13
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.Parent = parent
-    btn.MouseButton1Click:Connect(function()
-        Settings[settingKey] = not Settings[settingKey]
-        btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
-        btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(200, 200, 200)
-    end)
-end
-AddCheckbox(AimGeneral, "Ativar Assistencia de Mira", "Aim_Enabled", 30)
-AddCheckbox(AimGeneral, "Mostrar Campo de Visao", "Show_FOV", 55)
+local aimbotTitle = Instance.new("TextLabel")
+aimbotTitle.Parent = aimbotSection
+aimbotTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+aimbotTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+aimbotTitle.Font = Enum.Font.SourceSansBold
+aimbotTitle.TextSize = 18
+aimbotTitle.Text = "Aimbot"
+aimbotTitle.Size = UDim2.new(1, 0, 0, 30)
+aimbotTitle.TextXAlignment = Enum.TextXAlignment.Left
+aimbotTitle.Position = UDim2.new(0, 5, 0, 0)
 
--- Aba Aimbot - Seção Precisão
-local AimPrecision = CreateSection(AimPage, "Precisao", 180)
-local function AddSlider(parent, text, settingKey, min, max, yPos, suffix)
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, yPos)
-    label.BackgroundTransparency = 1
-    label.Text = text .. "  " .. Settings[settingKey] .. (suffix or "")
-    label.TextColor3 = Color3.fromRGB(200, 200, 200)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = parent
-    local sliderBg = Instance.new("Frame")
-    sliderBg.Size = UDim2.new(0.9, 0, 0, 4)
-    sliderBg.Position = UDim2.new(0.05, 0, 0, yPos + 22)
-    sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    sliderBg.BorderSizePixel = 0
-    sliderBg.Parent = parent
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new((Settings[settingKey] - min) / (max - min), 0, 1, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Parent = sliderBg
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    btn.Parent = sliderBg
-    btn.MouseButton1Down:Connect(function()
-        local moveConn
-        moveConn = RunService.RenderStepped:Connect(function()
-            local mousePos = UserInputService:GetMouseLocation().X
-            local relativePos = mousePos - sliderBg.AbsolutePosition.X
-            local percentage = math.clamp(relativePos / sliderBg.AbsoluteSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * percentage)
-            Settings[settingKey] = value
-            sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-            label.Text = text .. "  " .. value .. (suffix or "")
-        end)
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then if moveConn then moveConn:Disconnect() end end
-        end)
-    end)
-end
-AddSlider(AimPrecision, "Campo de Visao", "Aim_FOV", 10, 800, 30)
-AddSlider(AimPrecision, "Suavidade Vertical", "Aim_Smooth_V", 0, 50, 70)
-AddSlider(AimPrecision, "Suavidade Horizontal", "Aim_Smooth_H", 0, 50, 110)
-AddSlider(AimPrecision, "Distancia Maxima", "Aim_MaxDist", 50, 2000, 150, "m")
+local aimbotToggle = Instance.new("TextButton")
+aimbotToggle.Parent = aimbotSection
+aimbotToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+aimbotToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+aimbotToggle.Font = Enum.Font.SourceSans
+aimbotToggle.TextSize = 16
+aimbotToggle.Text = "Ativar Aimbot: Desativado"
+aimbotToggle.Size = UDim2.new(0.9, 0, 0, 30)
+aimbotToggle.Position = UDim2.new(0.05, 0, 0.2, 0)
+aimbotToggle.AutoButtonColor = false
 
--- Aba Aimbot - Seção Diversos
-local AimMisc = CreateSection(AimPage, "Diversos", 80)
-AddCheckbox(AimMisc, "Apenas Visiveis", "Aim_VisibleOnly", 30)
-AddCheckbox(AimMisc, "Ignorar NPCs", "Aim_IgnoreNPCs", 55)
-
--- Aba Visuals
-local VisualsMain = CreateSection(VisualsPage, "Configurações de ESP", 120)
-AddCheckbox(VisualsMain, "Ativar ESP", "ESP_Enabled", 30)
-AddCheckbox(VisualsMain, "Caixas (Box)", "ESP_Box", 55)
-AddCheckbox(VisualsMain, "Nomes", "ESP_Names", 80)
-
--- Aba Miscellaneous (Exploits)
-local MiscExploits = CreateSection(MiscPage, "Exploits", 150)
-AddCheckbox(MiscExploits, "Ativar Speed Hack", "Speed_Enabled", 30)
-AddSlider(MiscExploits, "Velocidade", "Walk_Speed", 16, 300, 55)
-AddCheckbox(MiscExploits, "Ativar Fly", "Fly_Enabled", 100)
-AddCheckbox(MiscExploits, "Car Fling (Joga Longe)", "Fling_Enabled", 125)
-
--- ================================================
--- LÓGICA DO AIMBOT (UNIVERSAL R6/R15)
--- ================================================
-local function GetTargetPart(character, partName)
-    if not character then return nil end
-    if partName == "Head" then return character:FindFirstChild("Head")
-    elseif partName == "Torso" then return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-    elseif partName == "Feet" then return character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot") or character:FindFirstChild("Left Leg") or character:FindFirstChild("Right Leg") end
-    return nil
-end
-
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Thickness = 1
-FOVCircle.Color = Color3.fromRGB(255, 0, 0)
-FOVCircle.Filled = false
-FOVCircle.Transparency = 0.5
-
-RunService.RenderStepped:Connect(function()
-    if Settings.Show_FOV then
-        FOVCircle.Visible = true
-        FOVCircle.Radius = Settings.Aim_FOV
-        FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-    else FOVCircle.Visible = false end
-
-    if Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
-        local target = nil
-        local shortestDistance = Settings.Aim_FOV
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                if Settings.Aim_IgnoreNPCs and not player:IsA("Player") then continue end
-                local hum = player.Character:FindFirstChildOfClass("Humanoid")
-                if not hum or hum.Health <= 0 then continue end
-                local targetPart = GetTargetPart(player.Character, Settings.Aim_Part)
-                if targetPart then
-                    local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
-                    if onScreen then
-                        local distToPlayer = (Camera.CFrame.Position - targetPart.Position).Magnitude
-                        if distToPlayer > Settings.Aim_MaxDist then continue end
-                        local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y + 36)).Magnitude
-                        if distance < shortestDistance then
-                            shortestDistance = distance
-                            target = targetPart
-                        end
-                    end
-                end
-            end
-        end
-        if target then
-            local smoothV = 1 / (Settings.Aim_Smooth_V + 1)
-            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), smoothV)
-        end
+local aimbotEnabled = false
+aimbotToggle.MouseButton1Click:Connect(function()
+    aimbotEnabled = not aimbotEnabled
+    aimbotToggle.Text = "Ativar Aimbot: " .. (aimbotEnabled and "Ativado" or "Desativado")
+    if aimbotEnabled then
+        aimbotToggle.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Verde quando ativado
+    else
+        aimbotToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70) -- Cinza quando desativado
     end
 end)
 
--- ================================================
--- LÓGICA DE MOVIMENTAÇÃO E MISC
--- ================================================
-RunService.Heartbeat:Connect(function()
-    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
-    end
-    if Settings.Fling_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local root = LocalPlayer.Character.HumanoidRootPart
-        root.Velocity = root.Velocity * 10000 + Vector3.new(0, 10000, 0)
+-- Slider Campo de Visão (Aimbot)
+local fovSliderFrame = Instance.new("Frame")
+fovSliderFrame.Parent = aimbotSection
+fovSliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+fovSliderFrame.Size = UDim2.new(0.9, 0, 0, 30)
+fovSliderFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+
+local fovLabel = Instance.new("TextLabel")
+fovLabel.Parent = fovSliderFrame
+fovLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+fovLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+fovLabel.Font = Enum.Font.SourceSans
+fovLabel.TextSize = 14
+fovLabel.Text = "Campo de Visão: 72"
+fovLabel.Size = UDim2.new(0.5, 0, 1, 0)
+fovLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Seção Precisão (Aimbot)
+local precisionSection = Instance.new("Frame")
+precisionSection.Parent = aimContent
+precisionSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+precisionSection.Size = UDim2.new(0.48, 0, 0.3, 0)
+precisionSection.Position = UDim2.new(0.51, 0, 0.01, 0)
+precisionSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
+precisionSection.BorderSizePixel = 1
+
+local precisionTitle = Instance.new("TextLabel")
+precisionTitle.Parent = precisionSection
+precisionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+precisionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+precisionTitle.Font = Enum.Font.SourceSansBold
+precisionTitle.TextSize = 18
+precisionTitle.Text = "Precisão"
+precisionTitle.Size = UDim2.new(1, 0, 0, 30)
+precisionTitle.TextXAlignment = Enum.TextXAlignment.Left
+precisionTitle.Position = UDim2.new(0, 5, 0, 0)
+
+-- Slider Suavidade Vertical (Aimbot)
+local verticalSmoothnessSliderFrame = Instance.new("Frame")
+verticalSmoothnessSliderFrame.Parent = precisionSection
+verticalSmoothnessSliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+verticalSmoothnessSliderFrame.Size = UDim2.new(0.9, 0, 0, 30)
+verticalSmoothnessSliderFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
+
+local verticalSmoothnessLabel = Instance.new("TextLabel")
+verticalSmoothnessLabel.Parent = verticalSmoothnessSliderFrame
+verticalSmoothnessLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+verticalSmoothnessLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+verticalSmoothnessLabel.Font = Enum.Font.SourceSans
+verticalSmoothnessLabel.TextSize = 14
+verticalSmoothnessLabel.Text = "Suavidade Vertical: 12"
+verticalSmoothnessLabel.Size = UDim2.new(0.7, 0, 1, 0)
+verticalSmoothnessLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Slider Suavidade Horizontal (Aimbot)
+local horizontalSmoothnessSliderFrame = Instance.new("Frame")
+horizontalSmoothnessSliderFrame.Parent = precisionSection
+horizontalSmoothnessSliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+horizontalSmoothnessSliderFrame.Size = UDim2.new(0.9, 0, 0, 30)
+horizontalSmoothnessSliderFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+
+local horizontalSmoothnessLabel = Instance.new("TextLabel")
+horizontalSmoothnessLabel.Parent = horizontalSmoothnessSliderFrame
+horizontalSmoothnessLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+horizontalSmoothnessLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+horizontalSmoothnessLabel.Font = Enum.Font.SourceSans
+horizontalSmoothnessLabel.TextSize = 14
+horizontalSmoothnessLabel.Text = "Suavidade Horizontal: 12"
+horizontalSmoothnessLabel.Size = UDim2.new(0.7, 0, 1, 0)
+horizontalSmoothnessLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Slider Distância Máxima (Aimbot)
+local maxDistanceSliderFrame = Instance.new("Frame")
+maxDistanceSliderFrame.Parent = precisionSection
+maxDistanceSliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+maxDistanceSliderFrame.Size = UDim2.new(0.9, 0, 0, 30)
+maxDistanceSliderFrame.Position = UDim2.new(0.05, 0, 0.6, 0)
+
+local maxDistanceLabel = Instance.new("TextLabel")
+maxDistanceLabel.Parent = maxDistanceSliderFrame
+maxDistanceLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+maxDistanceLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+maxDistanceLabel.Font = Enum.Font.SourceSans
+maxDistanceLabel.TextSize = 14
+maxDistanceLabel.Text = "Distância Máxima: 240m"
+maxDistanceLabel.Size = UDim2.new(0.7, 0, 1, 0)
+maxDistanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Seção Geral (Aimbot)
+local generalSection = Instance.new("Frame")
+generalSection.Parent = aimContent
+generalSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+generalSection.Size = UDim2.new(0.48, 0, 0.2, 0)
+generalSection.Position = UDim2.new(0.01, 0, 0.32, 0)
+generalSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
+generalSection.BorderSizePixel = 1
+
+local generalTitle = Instance.new("TextLabel")
+generalTitle.Parent = generalSection
+generalTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+generalTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+generalTitle.Font = Enum.Font.SourceSansBold
+generalTitle.TextSize = 18
+generalTitle.Text = "Geral"
+generalTitle.Size = UDim2.new(1, 0, 0, 30)
+generalTitle.TextXAlignment = Enum.TextXAlignment.Left
+generalTitle.Position = UDim2.new(0, 5, 0, 0)
+
+local activateAimAssistToggle = Instance.new("TextButton")
+activateAimAssistToggle.Parent = generalSection
+activateAimAssistToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+activateAimAssistToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+activateAimAssistToggle.Font = Enum.Font.SourceSans
+activateAimAssistToggle.TextSize = 16
+activateAimAssistToggle.Text = "Ativar Assistência de Mira: Desativado"
+activateAimAssistToggle.Size = UDim2.new(0.9, 0, 0, 30)
+activateAimAssistToggle.Position = UDim2.new(0.05, 0, 0.2, 0)
+activateAimAssistToggle.AutoButtonColor = false
+
+local aimAssistEnabled = false
+activateAimAssistToggle.MouseButton1Click:Connect(function()
+    aimAssistEnabled = not aimAssistEnabled
+    activateAimAssistToggle.Text = "Ativar Assistência de Mira: " .. (aimAssistEnabled and "Ativado" or "Desativado")
+    if aimAssistEnabled then
+        activateAimAssistToggle.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    else
+        activateAimAssistToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
     end
 end)
 
-UserInputService.InputBegan:Connect(function(input, processed)
-    if input.KeyCode == Settings.MenuKey then MainFrame.Visible = not MainFrame.Visible end
+local showFovToggle = Instance.new("TextButton")
+showFovToggle.Parent = generalSection
+showFovToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+showFovToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+showFovToggle.Font = Enum.Font.SourceSans
+showFovToggle.TextSize = 16
+showFovToggle.Text = "Mostrar Campo de Visão: Desativado"
+showFovToggle.Size = UDim2.new(0.9, 0, 0, 30)
+showFovToggle.Position = UDim2.new(0.05, 0, 0.5, 0)
+showFovToggle.AutoButtonColor = false
+
+local fovShown = false
+showFovToggle.MouseButton1Click:Connect(function()
+    fovShown = not fovShown
+    showFovToggle.Text = "Mostrar Campo de Visão: " .. (fovShown and "Ativado" or "Desativado")
+    if fovShown then
+        showFovToggle.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    else
+        showFovToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end
 end)
 
--- ================================================
--- LÓGICA DO ESP (HIGHLIGHT NATIVO)
--- ================================================
-local function CreateESP(p)
-    if p == LocalPlayer then return end
-    local highlight = Instance.new("Highlight")
-    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0
-    RunService.RenderStepped:Connect(function()
-        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            highlight.Parent = p.Character
-            highlight.Enabled = true
-        else highlight.Enabled = false end
-    end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
+-- Seção Diversos (Aimbot)
+local diverseSection = Instance.new("Frame")
+diverseSection.Parent = aimContent
+diverseSection.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+diverseSection.Size = UDim2.new(0.48, 0, 0.2, 0)
+diverseSection.Position = UDim2.new(0.51, 0, 0.32, 0)
+diverseSection.BorderColor3 = Color3.fromRGB(255, 0, 0)
+diverseSection.BorderSizePixel = 1
 
-print("[RAER V5 DEFINITIVE FIX] Carregado com sucesso!")
+local diverseTitle = Instance.new("TextLabel")
+diverseTitle.Parent = diverseSection
+diverseTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+diverseTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+diverseTitle.Font = Enum.Font.SourceSansBold
+diverseTitle.TextSize = 18
+diverseTitle.Text = "Diversos"
+diverseTitle.Size = UDim2.new(1, 0, 0, 30)
+diverseTitle.TextXAlignment = Enum.TextXAlignment.Left
+diverseTitle.Position = UDim2.new(0, 5, 0, 0)
+
+local visibleOnlyToggle = Instance.new("TextButton")
+visibleOnlyToggle.Parent = diverseSection
+visibleOnlyToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+visibleOnlyToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+visibleOnlyToggle.Font = Enum.Font.SourceSans
+visibleOnlyToggle.TextSize = 16
+visibleOnlyToggle.Text = "Apenas Visíveis: Desativado"
+visibleOnlyToggle.Size = UDim2.new(0.9, 0, 0, 30)
+visibleOnlyToggle.Position = UDim2.new(0.05, 0, 0.2, 0)
+visibleOnlyToggle.AutoButtonColor = false
+
+local visibleOnlyEnabled = false
+visibleOnlyToggle.MouseButton1Click:Connect(function()
+    visibleOnlyEnabled = not visibleOnlyEnabled
+    visibleOnlyToggle.Text = "Apenas Visíveis: " .. (visibleOnlyEnabled and "Ativado" or "Desativado")
+    if visibleOnlyEnabled then
+        visibleOnlyToggle.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    else
+        visibleOnlyToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end
+end)
+
+local ignoreNpcsToggle = Instance.new("TextButton")
+ignoreNpcsToggle.Parent = diverseSection
+ignoreNpcsToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+ignoreNpcsToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+ignoreNpcsToggle.Font = Enum.Font.SourceSans
+ignoreNpcsToggle.TextSize = 16
+ignoreNpcsToggle.Text = "Ignorar NPCs: Desativado"
+ignoreNpcsToggle.Size = UDim2.new(0.9, 0, 0, 30)
+ignoreNpcsToggle.Position = UDim2.new(0.05, 0, 0.5, 0)
+ignoreNpcsToggle.AutoButtonColor = false
+
+local ignoreNpcsEnabled = false
+ignoreNpcsToggle.MouseButton1Click:Connect(function()
+    ignoreNpcsEnabled = not ignoreNpcsEnabled
+    ignoreNpcsToggle.Text = "Ignorar NPCs: " .. (ignoreNpcsEnabled and "Ativado" or "Desativado")
+    if ignoreNpcsEnabled then
+        ignoreNpcsToggle.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    else
+        ignoreNpcsToggle.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    end
+end)
+
+----------------------------------------------------------------------------------------------------
+-- Aba 'Silent Aim'
+----------------------------------------------------------------------------------------------------
+
+-- Seção Override Config (Silent Aim)
+local ov
+(Content truncated due to size limit. Use line ranges to read remaining content)
