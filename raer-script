@@ -1,19 +1,20 @@
 --[[
-    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX
+    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Full GUI with Config Tab)
     Design: SKECH V2 (Dark/Red) - Premium
     Compatibilidade: Xeno Executor (R6 & R15)
     
-    CORREÇÃO: Lógica de comunicação direta para garantir que botões e sliders funcionem.
+    Este script implementa uma interface gráfica completa com foco na aba de Configurações.
+    A estrutura da GUI foi otimizada para maior compatibilidade e funcionalidade.
 ]]
 
 -- ================================================
--- VARIÁVEIS GLOBAIS (PARA GARANTIR FUNCIONAMENTO)
+-- VARIÁVEIS GLOBAIS (CONFIGURAÇÕES PADRÃO)
 -- ================================================
 getgenv().RAER_Settings = {
-    -- AIM
+    -- AIMBOT
     Aim_Enabled = false,
     Aim_Key = Enum.UserInputType.MouseButton2,
-    Aim_Part = "Head", -- "Head", "Torso", "Feet"
+    Aim_Part = "Head",
     Aim_FOV = 72,
     Aim_Smooth_V = 12,
     Aim_Smooth_H = 12,
@@ -22,6 +23,17 @@ getgenv().RAER_Settings = {
     Aim_IgnoreNPCs = true,
     Show_FOV = true,
     
+    -- SILENT AIM
+    Silent_Enabled = false,
+    Silent_ShowFOV = false,
+    Silent_FOV = 20,
+    Silent_HitChance = 100,
+    Silent_MaxDist = 203,
+    Silent_MagicBullets = false,
+    Silent_VisibleOnly = false,
+    Silent_IgnoreNPCs = false,
+    Silent_Key = Enum.UserInputType.MouseButton2,
+
     -- VISUALS
     ESP_Enabled = false,
     ESP_Box = false,
@@ -37,8 +49,16 @@ getgenv().RAER_Settings = {
     -- TELEPORT
     TP_Enabled = false,
     
-    -- GERAL
-    MenuKey = Enum.KeyCode.P
+    -- GERAL / CONFIGURAÇÕES
+    MenuKey = Enum.KeyCode.P,
+    AccentColor = Color3.fromRGB(255, 0, 0),
+    TextColor = Color3.fromRGB(200, 200, 200),
+    ActiveTextColor = Color3.fromRGB(255, 0, 0),
+    BackgroundColor = Color3.fromRGB(15, 15, 15),
+    SidebarColor = Color3.fromRGB(10, 10, 10),
+    SectionColor = Color3.fromRGB(20, 20, 20),
+    SliderFillColor = Color3.fromRGB(255, 0, 0),
+    ShowMenuOnStart = false,
 }
 
 local Settings = getgenv().RAER_Settings
@@ -55,7 +75,7 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (PREMIUM GUI V5 - FIXED)
+-- INTERFACE GRÁFICA (PREMIUM GUI V5)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "RAER_V5_Definitive"
@@ -65,17 +85,18 @@ ScreenGui.ResetOnSpawn = false
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BackgroundColor3 = Settings.BackgroundColor
 MainFrame.Size = UDim2.new(0, 650, 0, 450)
 MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Visible = Settings.ShowMenuOnStart -- Define a visibilidade inicial com base na configuração
 
 -- Borda Vermelha Lateral
 local AccentLine = Instance.new("Frame")
 AccentLine.Parent = MainFrame
-AccentLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+AccentLine.BackgroundColor3 = Settings.AccentColor
 AccentLine.Size = UDim2.new(0, 2, 1, 0)
 AccentLine.Position = UDim2.new(0, 140, 0, 0)
 AccentLine.BorderSizePixel = 0
@@ -84,7 +105,7 @@ AccentLine.BorderSizePixel = 0
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+Sidebar.BackgroundColor3 = Settings.SidebarColor
 Sidebar.Size = UDim2.new(0, 140, 1, 0)
 Sidebar.BorderSizePixel = 0
 
@@ -93,7 +114,7 @@ Logo.Parent = Sidebar
 Logo.Size = UDim2.new(1, 0, 0, 60)
 Logo.BackgroundTransparency = 1
 Logo.Text = "RAER"
-Logo.TextColor3 = Color3.fromRGB(255, 0, 0)
+Logo.TextColor3 = Settings.AccentColor
 Logo.Font = Enum.Font.GothamBold
 Logo.TextSize = 28
 
@@ -101,12 +122,14 @@ Logo.TextSize = 28
 local TabContainer = Instance.new("Frame")
 TabContainer.Name = "TabContainer"
 TabContainer.Parent = MainFrame
-TabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TabContainer.BackgroundColor3 = Settings.SectionColor
 TabContainer.Position = UDim2.new(0, 150, 0, 10)
 TabContainer.Size = UDim2.new(1, -160, 1, -20)
 TabContainer.BackgroundTransparency = 1
 
 local Pages = {}
+local ActivePage = nil
+
 local function CreatePage(name)
     local Page = Instance.new("ScrollingFrame")
     Page.Name = name .. "Page"
@@ -115,19 +138,26 @@ local function CreatePage(name)
     Page.BackgroundTransparency = 1
     Page.Visible = false
     Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 600)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 0) -- Ajusta dinamicamente
     local UIList = Instance.new("UIListLayout")
     UIList.Parent = Page
     UIList.Padding = UDim.new(0, 15)
+    UIList.SortOrder = Enum.SortOrder.LayoutOrder
     UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
     Pages[name] = Page
     return Page
 end
 
-local AimPage = CreatePage("Aim")
+-- Criar Abas
+local AimPage = CreatePage("Aimbot")
+local SilentPage = CreatePage("Silent Aim")
 local VisualsPage = CreatePage("Visuals")
 local MiscPage = CreatePage("Miscellaneous")
-AimPage.Visible = true
+local ConfigPage = CreatePage("Configurações") -- Nova aba de Configurações
+
+-- Definir página inicial
+ActivePage = AimPage
+ActivePage.Visible = true
 
 -- Categorias na Sidebar
 local function AddCategory(name, yPos)
@@ -147,48 +177,70 @@ AddCategory("Aim", 70)
 AddCategory("Visuals", 180)
 AddCategory("Miscellaneous", 290)
 
+-- Botões da Sidebar
+local TabButtons = {}
 local function AddTabButton(name, page, yPos)
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
     btn.Size = UDim2.new(1, -10, 0, 30)
     btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     btn.BackgroundTransparency = 1
     btn.BorderSizePixel = 0
     btn.Text = "  " .. name
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.TextColor3 = Settings.TextColor
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 14
     btn.TextXAlignment = Enum.TextXAlignment.Left
+    
     btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(Pages) do p.Visible = false end
-        page.Visible = true
-        for _, b in pairs(Sidebar:GetChildren()) do
-            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 200, 200) end
+        if ActivePage ~= page then
+            ActivePage.Visible = false
+            page.Visible = true
+            ActivePage = page
+            for _, b in pairs(TabButtons) do
+                b.TextColor3 = Settings.TextColor
+            end
+            btn.TextColor3 = Settings.ActiveTextColor
         end
-        btn.TextColor3 = Color3.fromRGB(255, 0, 0)
     end)
+    table.insert(TabButtons, btn)
 end
 
 AddTabButton("Aimbot", AimPage, 95)
-AddTabButton("Silent Aim", AimPage, 125)
+AddTabButton("Silent Aim", SilentPage, 125)
 AddTabButton("Trigger Bot", AimPage, 155)
 AddTabButton("Players", VisualsPage, 205)
 AddTabButton("Vehicles", VisualsPage, 235)
 AddTabButton("World", VisualsPage, 265)
 AddTabButton("Exploits", MiscPage, 315)
 AddTabButton("Teleport", MiscPage, 345)
-AddTabButton("Configurações", MiscPage, 375)
+AddTabButton("Configurações", ConfigPage, 375) -- Adicionando o botão da aba de Configurações
 
-local function CreateSection(parent, title, sizeY)
+-- Marcar botão inicial como ativo
+TabButtons[1].TextColor3 = Settings.ActiveTextColor
+
+-- ================================================
+-- FUNÇÕES DE CRIAÇÃO DE UI
+-- ================================================
+local function CreateSection(parent, title, layoutOrder)
     local section = Instance.new("Frame")
-    section.Size = UDim2.new(0.95, 0, 0, sizeY)
-    section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    section.Name = title
+    section.Parent = parent
+    section.BackgroundColor3 = Settings.SectionColor
     section.BorderSizePixel = 1
     section.BorderColor3 = Color3.fromRGB(40, 40, 40)
-    section.Parent = parent
+    section.Size = UDim2.new(0.95, 0, 0, 100) -- Tamanho inicial, será ajustado pelo UIListLayout
+    section.LayoutOrder = layoutOrder
+
+    local UIList = Instance.new("UIListLayout")
+    UIList.Parent = section
+    UIList.Padding = UDim.new(0, 5)
+    UIList.SortOrder = Enum.SortOrder.LayoutOrder
+    UIList.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -10, 0, 25)
+    label.Parent = section
+    label.Size = UDim2.new(1, -20, 0, 25)
     label.Position = UDim2.new(0, 10, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = title
@@ -196,18 +248,110 @@ local function CreateSection(parent, title, sizeY)
     label.Font = Enum.Font.Gotham
     label.TextSize = 13
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = section
+    label.LayoutOrder = 0
+    
     return section
 end
 
--- Aba Aimbot - Seção Sobrescrever Configuração
-local AimConfig = CreateSection(AimPage, "Sobrescrever configuração", 100)
+local function AddCheckbox(parent, text, settingKey, layoutOrder)
+    local container = Instance.new("Frame")
+    container.Parent = parent
+    container.BackgroundTransparency = 1
+    container.Size = UDim2.new(1, 0, 0, 25)
+    container.LayoutOrder = layoutOrder
+
+    local btn = Instance.new("TextButton")
+    btn.Parent = container
+    btn.Size = UDim2.new(1, -20, 1, 0)
+    btn.Position = UDim2.new(0, 10, 0, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
+    btn.TextColor3 = Settings[settingKey] and Settings.ActiveTextColor or Settings.TextColor
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 13
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    
+    btn.MouseButton1Click:Connect(function()
+        Settings[settingKey] = not Settings[settingKey]
+        btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
+        btn.TextColor3 = Settings[settingKey] and Settings.ActiveTextColor or Settings.TextColor
+    end)
+end
+
+local function AddSlider(parent, text, settingKey, min, max, layoutOrder, suffix)
+    local container = Instance.new("Frame")
+    container.Parent = parent
+    container.BackgroundTransparency = 1
+    container.Size = UDim2.new(1, 0, 0, 50)
+    container.LayoutOrder = layoutOrder
+
+    local label = Instance.new("TextLabel")
+    label.Parent = container
+    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Position = UDim2.new(0, 10, 0, 5)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Settings.TextColor
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local sliderBg = Instance.new("Frame")
+    sliderBg.Parent = container
+    sliderBg.Size = UDim2.new(0.9, 0, 0, 4)
+    sliderBg.Position = UDim2.new(0.05, 0, 0, 28)
+    sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    sliderBg.BorderSizePixel = 0
+
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Parent = sliderBg
+    sliderFill.BackgroundColor3 = Settings.SliderFillColor
+    sliderFill.BorderSizePixel = 0
+
+    local function UpdateSlider(value)
+        local percentage = (value - min) / (max - min)
+        sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+        label.Text = text .. "  " .. value .. (suffix or "")
+    end
+
+    UpdateSlider(Settings[settingKey])
+
+    local dragBtn = Instance.new("TextButton")
+    dragBtn.Parent = sliderBg
+    dragBtn.Size = UDim2.new(1, 0, 1, 0)
+    dragBtn.BackgroundTransparency = 1
+    dragBtn.Text = ""
+
+    dragBtn.MouseButton1Down:Connect(function()
+        local moveConn, endConn
+        moveConn = RunService.RenderStepped:Connect(function()
+            local mouseX = UserInputService:GetMouseLocation().X
+            local relativeX = mouseX - sliderBg.AbsolutePosition.X
+            local percentage = math.clamp(relativeX / sliderBg.AbsoluteSize.X, 0, 1)
+            local value = math.floor(min + (max - min) * percentage + 0.5)
+            Settings[settingKey] = value
+            UpdateSlider(value)
+        end)
+        endConn = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                moveConn:Disconnect()
+                endConn:Disconnect()
+            end
+        end)
+    end)
+end
+
+-- ================================================
+-- CONTEÚDO DAS ABAS
+-- ================================================
+
+-- Aba Aimbot (Conteúdo do script original)
+local AimConfig = CreateSection(AimPage, "Sobrescrever configuração", 1)
 local PartLabel = Instance.new("TextLabel")
 PartLabel.Size = UDim2.new(1, -20, 0, 20)
 PartLabel.Position = UDim2.new(0, 10, 0, 30)
 PartLabel.BackgroundTransparency = 1
 PartLabel.Text = "Ponto de Acerto"
-PartLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+PartLabel.TextColor3 = Settings.TextColor
 PartLabel.Font = Enum.Font.Gotham
 PartLabel.TextSize = 12
 PartLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -216,9 +360,9 @@ PartLabel.Parent = AimConfig
 local PartBtn = Instance.new("TextButton")
 PartBtn.Size = UDim2.new(0.9, 0, 0, 25)
 PartBtn.Position = UDim2.new(0.05, 0, 0, 55)
-PartBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PartBtn.BackgroundColor3 = Settings.SectionColor
 PartBtn.Text = "Cabeça"
-PartBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PartBtn.TextColor3 = Settings.TextColor
 PartBtn.BorderSizePixel = 0
 PartBtn.Parent = AimConfig
 PartBtn.MouseButton1Click:Connect(function()
@@ -233,185 +377,79 @@ PartBtn.MouseButton1Click:Connect(function()
     PartBtn.Text = names[idx]
 end)
 
--- Aba Aimbot - Seção Geral
-local AimGeneral = CreateSection(AimPage, "Geral", 80)
-local function AddCheckbox(parent, text, settingKey, yPos)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 25)
-    btn.Position = UDim2.new(0, 10, 0, yPos)
-    btn.BackgroundTransparency = 1
-    btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
-    btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 13
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    btn.Parent = parent
-    btn.MouseButton1Click:Connect(function()
-        Settings[settingKey] = not Settings[settingKey]
-        btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
-        btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(200, 200, 200)
-    end)
-end
-AddCheckbox(AimGeneral, "Ativar Assistencia de Mira", "Aim_Enabled", 30)
-AddCheckbox(AimGeneral, "Mostrar Campo de Visao", "Show_FOV", 55)
+local AimGeneral = CreateSection(AimPage, "Geral", 2)
+AddCheckbox(AimGeneral, "Ativar Assistencia de Mira", "Aim_Enabled", 1)
+AddCheckbox(AimGeneral, "Mostrar Campo de Visao", "Show_FOV", 2)
 
--- Aba Aimbot - Seção Precisão
-local AimPrecision = CreateSection(AimPage, "Precisao", 180)
-local function AddSlider(parent, text, settingKey, min, max, yPos, suffix)
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, yPos)
-    label.BackgroundTransparency = 1
-    label.Text = text .. "  " .. Settings[settingKey] .. (suffix or "")
-    label.TextColor3 = Color3.fromRGB(200, 200, 200)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = parent
-    local sliderBg = Instance.new("Frame")
-    sliderBg.Size = UDim2.new(0.9, 0, 0, 4)
-    sliderBg.Position = UDim2.new(0.05, 0, 0, yPos + 22)
-    sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    sliderBg.BorderSizePixel = 0
-    sliderBg.Parent = parent
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new((Settings[settingKey] - min) / (max - min), 0, 1, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Parent = sliderBg
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    btn.Parent = sliderBg
-    btn.MouseButton1Down:Connect(function()
-        local moveConn
-        moveConn = RunService.RenderStepped:Connect(function()
-            local mousePos = UserInputService:GetMouseLocation().X
-            local relativePos = mousePos - sliderBg.AbsolutePosition.X
-            local percentage = math.clamp(relativePos / sliderBg.AbsoluteSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * percentage)
-            Settings[settingKey] = value
-            sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-            label.Text = text .. "  " .. value .. (suffix or "")
-        end)
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then if moveConn then moveConn:Disconnect() end end
-        end)
-    end)
-end
-AddSlider(AimPrecision, "Campo de Visao", "Aim_FOV", 10, 800, 30)
-AddSlider(AimPrecision, "Suavidade Vertical", "Aim_Smooth_V", 0, 50, 70)
-AddSlider(AimPrecision, "Suavidade Horizontal", "Aim_Smooth_H", 0, 50, 110)
-AddSlider(AimPrecision, "Distancia Maxima", "Aim_MaxDist", 50, 2000, 150, "m")
+local AimPrecision = CreateSection(AimPage, "Precisao", 3)
+AddSlider(AimPrecision, "Campo de Visao", "Aim_FOV", 10, 800, 1)
+AddSlider(AimPrecision, "Suavidade Vertical", "Aim_Smooth_V", 0, 50, 2)
+AddSlider(AimPrecision, "Suavidade Horizontal", "Aim_Smooth_H", 0, 50, 3)
+AddSlider(AimPrecision, "Distancia Maxima", "Aim_MaxDist", 50, 2000, 4, "m")
 
--- Aba Aimbot - Seção Diversos
-local AimMisc = CreateSection(AimPage, "Diversos", 80)
-AddCheckbox(AimMisc, "Apenas Visiveis", "Aim_VisibleOnly", 30)
-AddCheckbox(AimMisc, "Ignorar NPCs", "Aim_IgnoreNPCs", 55)
+local AimMisc = CreateSection(AimPage, "Diversos", 4)
+AddCheckbox(AimMisc, "Apenas Visiveis", "Aim_VisibleOnly", 1)
+AddCheckbox(AimMisc, "Ignorar NPCs", "Aim_IgnoreNPCs", 2)
 
--- Aba Visuals
-local VisualsMain = CreateSection(VisualsPage, "Configurações de ESP", 120)
-AddCheckbox(VisualsMain, "Ativar ESP", "ESP_Enabled", 30)
-AddCheckbox(VisualsMain, "Caixas (Box)", "ESP_Box", 55)
-AddCheckbox(VisualsMain, "Nomes", "ESP_Names", 80)
+-- Aba Silent Aim (Conteúdo do script original)
+local SilentOverride = CreateSection(SilentPage, "Override config", 1)
+local SilentKeyLabel = Instance.new("TextLabel")
+SilentKeyLabel.Parent = SilentOverride
+SilentKeyLabel.Size = UDim2.new(1, -20, 0, 50)
+SilentKeyLabel.BackgroundTransparency = 1
+SilentKeyLabel.Text = "Tecla de Mira Silenciosa\nRight Mouse Button - Silent"
+SilentKeyLabel.RichText = true
+SilentKeyLabel.TextColor3 = Settings.TextColor
+SilentKeyLabel.Font = Enum.Font.Gotham
+SilentKeyLabel.TextSize = 12
+SilentKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+SilentKeyLabel.LayoutOrder = 1
 
--- Aba Miscellaneous (Exploits)
-local MiscExploits = CreateSection(MiscPage, "Exploits", 150)
-AddCheckbox(MiscExploits, "Ativar Speed Hack", "Speed_Enabled", 30)
-AddSlider(MiscExploits, "Velocidade", "Walk_Speed", 16, 300, 55)
-AddCheckbox(MiscExploits, "Ativar Fly", "Fly_Enabled", 100)
-AddCheckbox(MiscExploits, "Car Fling (Joga Longe)", "Fling_Enabled", 125)
+local SilentGeneral = CreateSection(SilentPage, "Geral", 2)
+AddCheckbox(SilentGeneral, "Ativar", "Silent_Enabled", 1)
+AddCheckbox(SilentGeneral, "Mostrar Campo de Visao", "Silent_ShowFOV", 2)
 
--- ================================================
--- LÓGICA DO AIMBOT (UNIVERSAL R6/R15)
--- ================================================
-local function GetTargetPart(character, partName)
-    if not character then return nil end
-    if partName == "Head" then return character:FindFirstChild("Head")
-    elseif partName == "Torso" then return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-    elseif partName == "Feet" then return character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot") or character:FindFirstChild("Left Leg") or character:FindFirstChild("Right Leg") end
-    return nil
-end
+local SilentPrecision = CreateSection(SilentPage, "Precisao", 3)
+AddSlider(SilentPrecision, "Campo de Visao", "Silent_FOV", 0, 360, 1)
+AddSlider(SilentPrecision, "Chance de Erro", "Silent_HitChance", 0, 100, 2, "x")
+AddSlider(SilentPrecision, "Distancia Maxima", "Silent_MaxDist", 0, 1000, 3, "m")
 
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Thickness = 1
-FOVCircle.Color = Color3.fromRGB(255, 0, 0)
-FOVCircle.Filled = false
-FOVCircle.Transparency = 0.5
+local SilentMisc = CreateSection(SilentPage, "Diversos", 4)
+AddCheckbox(SilentMisc, "Balas Magicas", "Silent_MagicBullets", 1)
+AddCheckbox(SilentMisc, "Apenas Visiveis", "Silent_VisibleOnly", 2)
+AddCheckbox(SilentMisc, "Ignorar NPCs", "Silent_IgnoreNPCs", 3)
 
-RunService.RenderStepped:Connect(function()
-    if Settings.Show_FOV then
-        FOVCircle.Visible = true
-        FOVCircle.Radius = Settings.Aim_FOV
-        FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-    else FOVCircle.Visible = false end
+--- Aba Configurações (NOVA)
+local ConfigGeneral = CreateSection(ConfigPage, "Geral", 1)
+AddCheckbox(ConfigGeneral, "Mostrar Menu ao Iniciar", "ShowMenuOnStart", 1)
 
-    if Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
-        local target = nil
-        local shortestDistance = Settings.Aim_FOV
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                if Settings.Aim_IgnoreNPCs and not player:IsA("Player") then continue end
-                local hum = player.Character:FindFirstChildOfClass("Humanoid")
-                if not hum or hum.Health <= 0 then continue end
-                local targetPart = GetTargetPart(player.Character, Settings.Aim_Part)
-                if targetPart then
-                    local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
-                    if onScreen then
-                        local distToPlayer = (Camera.CFrame.Position - targetPart.Position).Magnitude
-                        if distToPlayer > Settings.Aim_MaxDist then continue end
-                        local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y + 36)).Magnitude
-                        if distance < shortestDistance then
-                            shortestDistance = distance
-                            target = targetPart
-                        end
-                    end
-                end
-            end
+local MenuKeyBtn = Instance.new("TextButton")
+MenuKeyBtn.Parent = ConfigGeneral
+MenuKeyBtn.Size = UDim2.new(1, -20, 0, 25)
+MenuKeyBtn.Position = UDim2.new(0, 10, 0, 55)
+MenuKeyBtn.BackgroundTransparency = 1
+MenuKeyBtn.Text = "Tecla do Menu: " .. tostring(Settings.MenuKey.Name)
+MenuKeyBtn.TextColor3 = Settings.TextColor
+MenuKeyBtn.Font = Enum.Font.Gotham
+MenuKeyBtn.TextSize = 13
+MenuKeyBtn.TextXAlignment = Enum.TextXAlignment.Left
+MenuKeyBtn.LayoutOrder = 2
+MenuKeyBtn.MouseButton1Click:Connect(function()
+    MenuKeyBtn.Text = "Pressione uma tecla..."
+    local inputConn
+    inputConn = UserInputService.InputBegan:Connect(function(input, processed)
+        if not processed and input.UserInputType == Enum.UserInputType.Keyboard then
+            Settings.MenuKey = input.KeyCode
+            MenuKeyBtn.Text = "Tecla do Menu: " .. tostring(Settings.MenuKey.Name)
+            inputConn:Disconnect()
         end
-        if target then
-            local smoothV = 1 / (Settings.Aim_Smooth_V + 1)
-            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), smoothV)
-        end
-    end
-end)
-
--- ================================================
--- LÓGICA DE MOVIMENTAÇÃO E MISC
--- ================================================
-RunService.Heartbeat:Connect(function()
-    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
-    end
-    if Settings.Fling_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local root = LocalPlayer.Character.HumanoidRootPart
-        root.Velocity = root.Velocity * 10000 + Vector3.new(0, 10000, 0)
-    end
-end)
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if input.KeyCode == Settings.MenuKey then MainFrame.Visible = not MainFrame.Visible end
-end)
-
--- ================================================
--- LÓGICA DO ESP (HIGHLIGHT NATIVO)
--- ================================================
-local function CreateESP(p)
-    if p == LocalPlayer then return end
-    local highlight = Instance.new("Highlight")
-    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0
-    RunService.RenderStepped:Connect(function()
-        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            highlight.Parent = p.Character
-            highlight.Enabled = true
-        else highlight.Enabled = false end
     end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
+end)
 
-print("[RAER V5 DEFINITIVE FIX] Carregado com sucesso!")
+local ConfigColors = CreateSection(ConfigPage, "Cores da Interface", 3)
+
+local function AddColorPicker(parent, text, settingKey, layoutOrder)
+    local container = Instance.new("Frame")
+    container.Parent = parent
+    con
+(Content truncated due to size limit. Use line ranges to read remaining content)
