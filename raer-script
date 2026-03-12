@@ -1,17 +1,11 @@
 --[[
-    RAER ULTIMATE CHEAT | V5 SILENT AIM EDITION
+    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim Update)
     Design: SKECH V2 (Dark/Red) - Premium
     Compatibilidade: Xeno Executor (R6 & R15)
-    
-    Funcionalidades:
-    - SILENT AIM: Ativar, Mostrar FOV, Chance de Erro, Distância Máxima, Balas Mágicas, Apenas Visíveis, Ignorar NPCs.
-    - AIMBOT: Head/Torso/Feet, Smoothness, FOV, Team/Friend Check.
-    - VISUALS: ESP Box, Names, Distance.
-    - EXPLOITS: Speed Hack, Fly, Car Fling, Click TP.
 ]]
 
 -- ================================================
--- VARIÁVEIS GLOBAIS (GETGENV)
+-- VARIÁVEIS GLOBAIS (PARA GARANTIR FUNCIONAMENTO)
 -- ================================================
 getgenv().RAER_Settings = {
     -- AIMBOT
@@ -26,16 +20,17 @@ getgenv().RAER_Settings = {
     Aim_IgnoreNPCs = true,
     Show_FOV = true,
     
-    -- SILENT AIM (NOVA ABA)
+    -- SILENT AIM (NOVO)
     Silent_Enabled = false,
     Silent_ShowFOV = false,
     Silent_FOV = 20,
-    Silent_Chance = 100, -- 0% a 100%
+    Silent_HitChance = 100,
     Silent_MaxDist = 203,
     Silent_MagicBullets = false,
     Silent_VisibleOnly = false,
     Silent_IgnoreNPCs = false,
-    
+    Silent_Key = Enum.UserInputType.MouseButton2,
+
     -- VISUALS
     ESP_Enabled = false,
     ESP_Box = false,
@@ -47,6 +42,8 @@ getgenv().RAER_Settings = {
     Fly_Enabled = false,
     Fly_Speed = 80,
     Fling_Enabled = false,
+    
+    -- TELEPORT
     TP_Enabled = false,
     
     -- GERAL
@@ -67,10 +64,10 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (PREMIUM GUI V5 - SILENT AIM)
+-- INTERFACE GRÁFICA (PREMIUM GUI V5 - FIXED)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_V5_Silent"
+ScreenGui.Name = "RAER_V5_Definitive"
 ScreenGui.Parent = CoreGui or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -137,7 +134,7 @@ local function CreatePage(name)
 end
 
 local AimPage = CreatePage("Aim")
-local SilentPage = CreatePage("Silent")
+local SilentPage = CreatePage("SilentAim")
 local VisualsPage = CreatePage("Visuals")
 local MiscPage = CreatePage("Miscellaneous")
 AimPage.Visible = true
@@ -157,8 +154,8 @@ local function AddCategory(name, yPos)
 end
 
 AddCategory("Aim", 70)
-AddCategory("Visuals", 210)
-AddCategory("Miscellaneous", 320)
+AddCategory("Visuals", 180)
+AddCategory("Miscellaneous", 290)
 
 local function AddTabButton(name, page, yPos)
     local btn = Instance.new("TextButton")
@@ -186,10 +183,12 @@ end
 AddTabButton("Aimbot", AimPage, 95)
 AddTabButton("Silent Aim", SilentPage, 125)
 AddTabButton("Trigger Bot", AimPage, 155)
-AddTabButton("Players", VisualsPage, 235)
-AddTabButton("Vehicles", VisualsPage, 265)
-AddTabButton("Exploits", MiscPage, 345)
-AddTabButton("Teleport", MiscPage, 375)
+AddTabButton("Players", VisualsPage, 205)
+AddTabButton("Vehicles", VisualsPage, 235)
+AddTabButton("World", VisualsPage, 265)
+AddTabButton("Exploits", MiscPage, 315)
+AddTabButton("Teleport", MiscPage, 345)
+AddTabButton("Configurações", MiscPage, 375)
 
 local function CreateSection(parent, title, sizeY)
     local section = Instance.new("Frame")
@@ -211,6 +210,7 @@ local function CreateSection(parent, title, sizeY)
     return section
 end
 
+-- Funções Auxiliares de UI
 local function AddCheckbox(parent, text, settingKey, yPos)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -20, 0, 25)
@@ -267,33 +267,98 @@ local function AddSlider(parent, text, settingKey, min, max, yPos, suffix)
             sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
             label.Text = text .. "  " .. value .. (suffix or "")
         end)
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then if moveConn then moveConn:Disconnect() end end
+        local endConn
+        endConn = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if moveConn then moveConn:Disconnect() end
+                endConn:Disconnect()
+            end
         end)
     end)
 end
 
 -- ================================================
--- ABA SILENT AIM (INSPIRADA NA IMAGEM)
+-- ABA AIMBOT
 -- ================================================
-local SilentOverride = CreateSection(SilentPage, "Override config", 60)
+local AimConfig = CreateSection(AimPage, "Sobrescrever configuração", 100)
+local PartLabel = Instance.new("TextLabel")
+PartLabel.Size = UDim2.new(1, -20, 0, 20)
+PartLabel.Position = UDim2.new(0, 10, 0, 30)
+PartLabel.BackgroundTransparency = 1
+PartLabel.Text = "Ponto de Acerto"
+PartLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+PartLabel.Font = Enum.Font.Gotham
+PartLabel.TextSize = 12
+PartLabel.TextXAlignment = Enum.TextXAlignment.Left
+PartLabel.Parent = AimConfig
+
+local PartBtn = Instance.new("TextButton")
+PartBtn.Size = UDim2.new(0.9, 0, 0, 25)
+PartBtn.Position = UDim2.new(0.05, 0, 0, 55)
+PartBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PartBtn.Text = "Cabeça"
+PartBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+PartBtn.BorderSizePixel = 0
+PartBtn.Parent = AimConfig
+PartBtn.MouseButton1Click:Connect(function()
+    local parts = {["Cabeça"] = "Head", ["Peito"] = "Torso", ["Pé"] = "Feet"}
+    local names = {"Cabeça", "Peito", "Pé"}
+    local currentName = "Cabeça"
+    for k, v in pairs(parts) do if v == Settings.Aim_Part then currentName = k end end
+    local idx = table.find(names, currentName) or 1
+    idx = idx + 1
+    if idx > #names then idx = 1 end
+    Settings.Aim_Part = parts[names[idx]]
+    PartBtn.Text = names[idx]
+end)
+
+local AimGeneral = CreateSection(AimPage, "Geral", 80)
+AddCheckbox(AimGeneral, "Ativar Assistencia de Mira", "Aim_Enabled", 30)
+AddCheckbox(AimGeneral, "Mostrar Campo de Visao", "Show_FOV", 55)
+
+local AimPrecision = CreateSection(AimPage, "Precisao", 180)
+AddSlider(AimPrecision, "Campo de Visao", "Aim_FOV", 10, 800, 30)
+AddSlider(AimPrecision, "Suavidade Vertical", "Aim_Smooth_V", 0, 50, 70)
+AddSlider(AimPrecision, "Suavidade Horizontal", "Aim_Smooth_H", 0, 50, 110)
+AddSlider(AimPrecision, "Distancia Maxima", "Aim_MaxDist", 50, 2000, 150, "m")
+
+local AimMisc = CreateSection(AimPage, "Diversos", 80)
+AddCheckbox(AimMisc, "Apenas Visiveis", "Aim_VisibleOnly", 30)
+AddCheckbox(AimMisc, "Ignorar NPCs", "Aim_IgnoreNPCs", 55)
+
+-- ================================================
+-- ABA SILENT AIM (IMPLEMENTAÇÃO CONFORME IMAGEM)
+-- ================================================
+local SilentOverride = CreateSection(SilentPage, "Override config", 80)
 local SilentKeyLabel = Instance.new("TextLabel")
-SilentKeyLabel.Size = UDim2.new(1, 0, 1, 0)
+SilentKeyLabel.Size = UDim2.new(1, -20, 0, 20)
+SilentKeyLabel.Position = UDim2.new(0, 10, 0, 30)
 SilentKeyLabel.BackgroundTransparency = 1
-SilentKeyLabel.Text = "Tecla de Mira Silenciosa\nRight Mouse Button - Silent"
-SilentKeyLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+SilentKeyLabel.Text = "Tecla de Mira Silenciosa"
+SilentKeyLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 SilentKeyLabel.Font = Enum.Font.Gotham
-SilentKeyLabel.TextSize = 11
+SilentKeyLabel.TextSize = 12
+SilentKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
 SilentKeyLabel.Parent = SilentOverride
+
+local SilentKeyBtn = Instance.new("TextButton")
+SilentKeyBtn.Size = UDim2.new(0.9, 0, 0, 25)
+SilentKeyBtn.Position = UDim2.new(0.05, 0, 0, 50)
+SilentKeyBtn.BackgroundTransparency = 1
+SilentKeyBtn.Text = "Right Mouse Button - Silent"
+SilentKeyBtn.TextColor3 = Color3.fromRGB(150, 150, 150)
+SilentKeyBtn.Font = Enum.Font.Gotham
+SilentKeyBtn.TextSize = 11
+SilentKeyBtn.Parent = SilentOverride
 
 local SilentGeneral = CreateSection(SilentPage, "Geral", 80)
 AddCheckbox(SilentGeneral, "Ativar", "Silent_Enabled", 30)
 AddCheckbox(SilentGeneral, "Mostrar Campo de Visao", "Silent_ShowFOV", 55)
 
 local SilentPrecision = CreateSection(SilentPage, "Precisao", 150)
-AddSlider(SilentPrecision, "Campo de Visao", "Silent_FOV", 5, 300, 30)
-AddSlider(SilentPrecision, "Chance de Erro", "Silent_Chance", 0, 100, 70, "%")
-AddSlider(SilentPrecision, "Distancia Maxima", "Silent_MaxDist", 50, 1000, 110, "m")
+AddSlider(SilentPrecision, "Campo de Visao", "Silent_FOV", 0, 360, 30)
+AddSlider(SilentPrecision, "Chance de Erro", "Silent_HitChance", 0, 100, 70, "%")
+AddSlider(SilentPrecision, "Distancia Maxima", "Silent_MaxDist", 0, 1000, 110, "m")
 
 local SilentMisc = CreateSection(SilentPage, "Diversos", 100)
 AddCheckbox(SilentMisc, "Balas Magicas", "Silent_MagicBullets", 30)
@@ -301,49 +366,35 @@ AddCheckbox(SilentMisc, "Apenas Visiveis", "Silent_VisibleOnly", 55)
 AddCheckbox(SilentMisc, "Ignorar NPCs", "Silent_IgnoreNPCs", 80)
 
 -- ================================================
--- OUTRAS ABAS (AIMBOT, VISUALS, MISC)
+-- OUTRAS ABAS (VISUALS / MISC)
 -- ================================================
-local AimGeneral = CreateSection(AimPage, "Aimbot Geral", 80)
-AddCheckbox(AimGeneral, "Ativar Aimbot", "Aim_Enabled", 30)
-AddCheckbox(AimGeneral, "Mostrar FOV", "Show_FOV", 55)
-
-local VisualsMain = CreateSection(VisualsPage, "ESP", 100)
+local VisualsMain = CreateSection(VisualsPage, "Configurações de ESP", 120)
 AddCheckbox(VisualsMain, "Ativar ESP", "ESP_Enabled", 30)
-AddCheckbox(VisualsMain, "Box ESP", "ESP_Box", 55)
+AddCheckbox(VisualsMain, "Caixas (Box)", "ESP_Box", 55)
+AddCheckbox(VisualsMain, "Nomes", "ESP_Names", 80)
 
-local MiscExploits = CreateSection(MiscPage, "Exploits", 120)
-AddCheckbox(MiscExploits, "Speed Hack", "Speed_Enabled", 30)
-AddCheckbox(MiscExploits, "Fly", "Fly_Enabled", 55)
-AddCheckbox(MiscExploits, "Car Fling", "Fling_Enabled", 80)
+local MiscExploits = CreateSection(MiscPage, "Exploits", 150)
+AddCheckbox(MiscExploits, "Ativar Speed Hack", "Speed_Enabled", 30)
+AddSlider(MiscExploits, "Velocidade", "Walk_Speed", 16, 300, 55)
+AddCheckbox(MiscExploits, "Ativar Fly", "Fly_Enabled", 100)
+AddCheckbox(MiscExploits, "Car Fling (Joga Longe)", "Fling_Enabled", 125)
 
 -- ================================================
--- LÓGICA DO SILENT AIM
+-- LÓGICA DO AIMBOT & SILENT AIM
 -- ================================================
-local function GetClosestPlayerToMouse()
-    local target = nil
-    local shortestDistance = Settings.Silent_FOV
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            if Settings.Silent_IgnoreNPCs and not player:IsA("Player") then continue end
-            local hum = player.Character:FindFirstChildOfClass("Humanoid")
-            if not hum or hum.Health <= 0 then continue end
-            local root = player.Character:FindFirstChild("HumanoidRootPart") or player.Character:FindFirstChild("Head")
-            if root then
-                local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
-                if onScreen then
-                    local distToPlayer = (Camera.CFrame.Position - root.Position).Magnitude
-                    if distToPlayer > Settings.Silent_MaxDist then continue end
-                    local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y + 36)).Magnitude
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        target = player
-                    end
-                end
-            end
-        end
-    end
-    return target
+local function GetTargetPart(character, partName)
+    if not character then return nil end
+    if partName == "Head" then return character:FindFirstChild("Head")
+    elseif partName == "Torso" then return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
+    elseif partName == "Feet" then return character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot") or character:FindFirstChild("Left Leg") or character:FindFirstChild("Right Leg") end
+    return nil
 end
+
+local AimFOV = Drawing.new("Circle")
+AimFOV.Thickness = 1
+AimFOV.Color = Color3.fromRGB(255, 0, 0)
+AimFOV.Filled = false
+AimFOV.Transparency = 0.5
 
 local SilentFOV = Drawing.new("Circle")
 SilentFOV.Thickness = 1
@@ -351,71 +402,22 @@ SilentFOV.Color = Color3.fromRGB(255, 0, 0)
 SilentFOV.Filled = false
 SilentFOV.Transparency = 0.5
 
--- Hooking para Silent Aim (Simulado para Xeno)
-RunService.RenderStepped:Connect(function()
-    if Settings.Silent_ShowFOV then
-        SilentFOV.Visible = true
-        SilentFOV.Radius = Settings.Silent_FOV
-        SilentFOV.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-    else SilentFOV.Visible = false end
-end)
-
--- Lógica de Redirecionamento de Tiro (Silent Aim)
-local oldNamecall
-oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-    local args = {...}
-    local method = getnamecallmethod()
-    if Settings.Silent_Enabled and (method == "FindPartOnRayWithIgnoreList" or method == "Raycast") then
-        if math.random(1, 100) <= (100 - Settings.Silent_Chance) then return oldNamecall(self, ...) end
-        local target = GetClosestPlayerToMouse()
-        if target and target.Character then
-            local hitPart = target.Character:FindFirstChild("Head") or target.Character:FindFirstChild("HumanoidRootPart")
-            if hitPart then
-                if Settings.Silent_MagicBullets then
-                    -- Lógica de Magic Bullets (Redireciona o tiro diretamente)
-                    return hitPart, hitPart.Position, Vector3.new(0,0,0), hitPart.Material
-                end
-            end
-        end
-    end
-    return oldNamecall(self, ...)
-end)
-
--- ================================================
--- LÓGICA DE MOVIMENTAÇÃO E MISC
--- ================================================
-RunService.Heartbeat:Connect(function()
-    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
-    end
-    if Settings.Fling_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local root = LocalPlayer.Character.HumanoidRootPart
-        root.Velocity = root.Velocity * 10000 + Vector3.new(0, 10000, 0)
-    end
-end)
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if input.KeyCode == Settings.MenuKey then MainFrame.Visible = not MainFrame.Visible end
-end)
-
--- ================================================
--- LÓGICA DO ESP (HIGHLIGHT NATIVO)
--- ================================================
-local function CreateESP(p)
-    if p == LocalPlayer then return end
-    local highlight = Instance.new("Highlight")
-    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    highlight.FillTransparency = 0.5
-    highlight.OutlineTransparency = 0
-    RunService.RenderStepped:Connect(function()
-        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            highlight.Parent = p.Character
-            highlight.Enabled = true
-        else highlight.Enabled = false end
-    end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
-
-print("[RAER V5 SILENT AIM] Carregado com sucesso!")
+local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNPCs)
+    local target = nil
+    local shortestDistance = fov
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            if ignoreNPCs and not player:IsA("Player") then continue end
+            local hum = player.Character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
+            local targetPart = player.Character:FindFirstChild("Head") -- Silent Aim foca na cabeça por padrão
+            if targetPart then
+                local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                if onScreen then
+                    local distToPlayer = (Camera.CFrame.Position - targetPart.Position).Magnitude
+                    if distToPlayer > maxDist then continue end
+                    local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y + 36)).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        targe
+(Content truncated due to size limit. Use line ranges to read remaining content)
