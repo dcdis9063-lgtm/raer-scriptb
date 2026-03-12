@@ -1,9 +1,10 @@
 --[[
-    RAER ULTIMATE CHEAT | V4 NO LOGIN EDITION (ORIGINAL RESTORED)
+    RAER ULTIMATE CHEAT | V4 CAR FLING EDITION
     Inspirado no Design: SKECH (Dark/Red)
     Desenvolvido para: Xeno Executor
     
-    Novidades V4 NO LOGIN:
+    Novidades V4 CAR FLING:
+    - Função "Car Fling" (Joga carros e objetos longe ao encostar)
     - Removida Tela de Login (Carregamento Instantâneo)
     - Aimbot com trava na Cabeça, Peito ou Pé
     - Todas as funções originais (ESP, Speed, Fly, TP)
@@ -33,6 +34,7 @@ local Settings = {
     Speed_Enabled = false,
     Walk_Speed = 100,
     TP_Enabled = false,
+    Fling_Enabled = false, -- NOVA FUNÇÃO
     
     -- GERAL
     MenuKey = Enum.KeyCode.P,
@@ -54,7 +56,7 @@ local Mouse = LocalPlayer:GetMouse()
 -- INTERFACE GRÁFICA (MAIN PANEL PREMIUM)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate_V4_Original"
+ScreenGui.Name = "RAER_Ultimate_V4_Fling"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -271,6 +273,7 @@ AddSlider(PlayerPage, "Walk Speed", "Walk_Speed", 16, 300)
 AddToggle(PlayerPage, "Enable Fly", "Fly_Enabled")
 AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
 AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled")
+AddToggle(PlayerPage, "Car Fling (Joga Longe)", "Fling_Enabled") -- NOVA OPÇÃO
 
 -- ================================================
 -- LÓGICA DO AIMBOT
@@ -317,6 +320,19 @@ RunService.RenderStepped:Connect(function()
                 Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
             end
         end
+    end
+end)
+
+-- ================================================
+-- LÓGICA DO CAR FLING (NOVA)
+-- ================================================
+RunService.Heartbeat:Connect(function()
+    if Settings.Fling_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LocalPlayer.Character.HumanoidRootPart
+        local vel = root.Velocity
+        root.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+        RunService.RenderStepped:Wait()
+        root.Velocity = vel
     end
 end)
 
@@ -390,17 +406,5 @@ local function CreateESP(p)
                     name.Visible = true
                 else name.Visible = false end
             else box.Visible = false name.Visible = false end
-        else box.Visible = false name.Visible = false end
-    end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
-    if input.KeyCode == Settings.MenuKey then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-end)
-
-print("[RAER ULTIMATE V4 ORIGINAL RESTORED] Carregado com sucesso!")
+        else box.
+(Content truncated due to size limit. Use line ranges to read remaining content)
