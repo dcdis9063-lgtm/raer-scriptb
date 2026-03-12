@@ -1,9 +1,9 @@
---[[
-    RAER ULTRA CHEAT V4 | ULTRA-LITE EDITION
-    Versão: SUPER COMPATÍVEL (Xeno)
+-[[
+    RAER ULTRA CHEAT V4 | ULTRA-LITE V2
+    Versão: SUPER COMPATÍVEL (Xeno) + SENSIBILIDADE
     
     Funções:
-    - Aimbot Lock-On (Botão Direito)
+    - Aimbot Lock-On (Botão Direito) com Sensibilidade (Smoothness)
     - Speed Hack (Tecla V)
     - Fly (Tecla F)
     - Teleport (Ctrl + Click)
@@ -13,19 +13,29 @@
 -- CONFIGURAÇÕES (Editáveis no VS Code)
 -- ================================================
 local Settings = {
+    -- AIMBOT
     Aim_Enabled = true,
     Aim_FOV = 300,
     Aim_Part = "Head", -- "Head", "HumanoidRootPart", "LeftFoot"
     Aim_Key = Enum.UserInputType.MouseButton2,
     
+    -- SENSIBILIDADE (NOVO)
+    -- 0.0 = Instantâneo (Rage)
+    -- 0.1 a 0.5 = Suave (Legit)
+    Aim_Smoothness = 0.0, 
+
+    -- FLY
     Fly_Enabled = false,
     Fly_Speed = 80,
     
+    -- SPEED HACK
     Speed_Enabled = false,
     Walk_Speed = 100,
     
+    -- TELEPORT
     TP_Enabled = true,
     
+    -- TECLAS DE ATALHO
     FlyKey = Enum.KeyCode.F,
     SpeedKey = Enum.KeyCode.V
 }
@@ -41,7 +51,7 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- LÓGICA DO AIMBOT (LOCK-ON)
+-- LÓGICA DO AIMBOT (COM SENSIBILIDADE)
 -- ================================================
 local function GetClosestPlayer()
     local target = nil
@@ -70,7 +80,17 @@ RunService.RenderStepped:Connect(function()
     if Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
         local target = GetClosestPlayer()
         if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character[Settings.Aim_Part].Position)
+            local targetPos = target.Character[Settings.Aim_Part].Position
+            
+            if Settings.Aim_Smoothness > 0 then
+                -- MODO SUAVE (Legit)
+                local currentCFrame = Camera.CFrame
+                local targetCFrame = CFrame.new(currentCFrame.Position, targetPos)
+                Camera.CFrame = currentCFrame:Lerp(targetCFrame, Settings.Aim_Smoothness)
+            else
+                -- MODO INSTANTÂNEO (Rage)
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+            end
         end
     end
 end)
@@ -134,5 +154,5 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("[RAER V4 ULTRA-LITE] Script carregado com sucesso!")
+print("[RAER V4 ULTRA-LITE V2] Script carregado com sucesso!")
 print("Aimbot: Botão Direito | Fly: F | Speed: V | Teleport: Ctrl + Click")
