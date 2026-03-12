@@ -1,389 +1,347 @@
 --[[ Script para Painel de Cheat do Roblox (Xeno) ]]
 
--- Cria a janela principal
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local TitleLabel = Instance.new("TextLabel")
+-- Função principal para carregar a GUI
+local function loadCheatPanel()
+    local success, err = pcall(function()
+        print("Iniciando carregamento do Painel de Cheat...")
 
--- Configurações da janela
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        -- Obter serviços essenciais
+        local Players = game:GetService("Players")
+        local UserInputService = game:GetService("UserInputService")
+        local LocalPlayer = Players.LocalPlayer
 
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
-MainFrame.BorderSizePixel = 2
-MainFrame.Position = UDim2.new(0.5, -400, 0.5, -300) -- Centraliza a GUI
-MainFrame.Size = UDim2.new(0, 800, 0, 600)
-
--- Implementação de arrastar personalizada para o MainFrame
-local UserInputService = game:GetService("UserInputService")
-local isDragging = false
-local dragStart = Vector2.new(0, 0)
-local initialPosition = UDim2.new(0, 0, 0, 0)
-
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = true
-        dragStart = input.Position
-        initialPosition = MainFrame.Position
-        input.Handled = true
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            initialPosition.X.Scale, initialPosition.X.Offset + delta.X,
-            initialPosition.Y.Scale, initialPosition.Y.Offset + delta.Y
-        )
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        isDragging = false
-    end
-end)
-
--- Título
-TitleLabel.Parent = MainFrame
-TitleLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.Font = Enum.Font.SourceSansBold
-TitleLabel.TextSize = 20
-TitleLabel.Text = "Painel de Cheat v1.0"
-TitleLabel.Size = UDim2.new(1, 0, 0, 40)
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.TextWrapped = true
-TitleLabel.Position = UDim2.new(0, 5, 0, 0)
-
--- Abas (Menu Lateral)
-local TabsFrame = Instance.new("Frame")
-TabsFrame.Parent = MainFrame
-TabsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TabsFrame.Size = UDim2.new(0, 150, 1, -40) -- 150 de largura, altura total menos o título
-TabsFrame.Position = UDim2.new(0, 0, 0, 40)
-
-local TabsLayout = Instance.new("UIListLayout")
-TabsLayout.Parent = TabsFrame
-TabsLayout.FillDirection = Enum.FillDirection.Vertical
-TabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-TabsLayout.Padding = UDim.new(0, 5)
-
--- Conteúdo das Abas
-local ContentFrame = Instance.new("Frame")
-ContentFrame.Parent = MainFrame
-ContentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-ContentFrame.Size = UDim2.new(1, -150, 1, -40) -- Largura total menos a aba, altura total menos o título
-ContentFrame.Position = UDim2.new(0, 150, 0, 40)
-ContentFrame.ClipsDescendants = true -- Garante que o conteúdo não vaze
-
--- Dicionário para armazenar os frames de conteúdo de cada aba
-local tabContents = {}
-local currentTab = nil
-
--- Função para criar um botão de aba
-local function createTabButton(name)
-    local TabButton = Instance.new("TextButton")
-    TabButton.Parent = TabsFrame
-    TabButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TabButton.Font = Enum.Font.SourceSans
-    TabButton.TextSize = 16
-    TabButton.Text = name
-    TabButton.Size = UDim2.new(1, -10, 0, 30) -- -10 para ter um pequeno padding lateral
-    TabButton.AutoButtonColor = false
-    TabButton.BorderColor3 = Color3.fromRGB(20, 20, 20)
-    TabButton.BorderSizePixel = 1
-
-    -- Frame de conteúdo para esta aba
-    local ContentPage = Instance.new("Frame")
-    ContentPage.Parent = ContentFrame
-    ContentPage.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    ContentPage.Size = UDim2.new(1, 0, 1, 0)
-    ContentPage.Position = UDim2.new(0, 0, 0, 0)
-    ContentPage.Visible = false -- Esconde por padrão
-    tabContents[name] = ContentPage
-
-    TabButton.MouseButton1Click:Connect(function()
-        if currentTab then
-            tabContents[currentTab].Visible = false
-            -- Resetar cor do botão da aba anterior
-            TabsFrame[currentTab .. "TabButton"].BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-            TabsFrame[currentTab .. "TabButton"].BorderColor3 = Color3.fromRGB(20, 20, 20)
+        if not LocalPlayer then
+            error("LocalPlayer não encontrado. Certifique-se de que o script está sendo executado no contexto do cliente.")
         end
-        ContentPage.Visible = true
-        currentTab = name
-        -- Destacar o botão da aba atual
-        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        TabButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
-    end)
 
-    TabButton.Name = name .. "TabButton" -- Nome para fácil acesso
-    return TabButton, ContentPage
-end
-
--- Função auxiliar para criar um toggle button
-local function createToggle(parent, text, defaultState, callback)
-    local toggleButton = Instance.new("TextButton")
-    toggleButton.Parent = parent
-    toggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggleButton.Font = Enum.Font.SourceSans
-    toggleButton.TextSize = 16
-    toggleButton.Size = UDim2.new(0.9, 0, 0, 30)
-    toggleButton.AutoButtonColor = false
-
-    local enabled = defaultState
-    local function updateText()
-        toggleButton.Text = text .. ": " .. (enabled and "Ativado" or "Desativado")
-        if enabled then
-            toggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Verde quando ativado
-        else
-            toggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70) -- Cinza quando desativado
+        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui", 10) -- Espera até 10 segundos por PlayerGui
+        if not PlayerGui then
+            error("PlayerGui não encontrado após 10 segundos. O script pode estar sendo executado muito cedo ou em um ambiente incorreto.")
         end
-    end
 
-    updateText()
+        print("PlayerGui encontrado. Criando ScreenGui...")
 
-    toggleButton.MouseButton1Click:Connect(function()
-        enabled = not enabled
-        updateText()
-        if callback then
-            callback(enabled)
-        end
-    end)
-    return toggleButton, function() return enabled end -- Retorna o botão e uma função para obter o estado
-end
+        -- Cria a ScreenGui principal
+        local ScreenGui = Instance.new("ScreenGui")
+        ScreenGui.Name = "CheatPanelScreenGui"
+        ScreenGui.Parent = PlayerGui
+        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Função auxiliar para criar um slider
-local function createSlider(parent, labelText, minValue, maxValue, defaultValue, callback)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Parent = parent
-    sliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    sliderFrame.Size = UDim2.new(0.9, 0, 0, 30)
+        print("ScreenGui criada e parentada. Criando MainFrame...")
 
-    local sliderLabel = Instance.new("TextLabel")
-    sliderLabel.Parent = sliderFrame
-    sliderLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sliderLabel.Font = Enum.Font.SourceSans
-    sliderLabel.TextSize = 14
-    sliderLabel.Text = labelText .. ": " .. tostring(defaultValue)
-    sliderLabel.Size = UDim2.new(0.5, 0, 1, 0)
-    sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
+        -- Cria o MainFrame (janela principal do painel)
+        local MainFrame = Instance.new("Frame")
+        MainFrame.Name = "MainCheatFrame"
+        MainFrame.Parent = ScreenGui
+        MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+        MainFrame.BorderSizePixel = 2
+        MainFrame.Position = UDim2.new(0.5, -400, 0.5, -300) -- Centraliza a GUI
+        MainFrame.Size = UDim2.new(0, 800, 0, 600)
 
-    local sliderBar = Instance.new("Frame") -- A barra do slider
-    sliderBar.Parent = sliderFrame
-    sliderBar.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    sliderBar.Size = UDim2.new(0.4, 0, 0.8, 0)
-    sliderBar.Position = UDim2.new(0.5, 0, 0.1, 0)
+        print("MainFrame criado. Implementando funcionalidade de arrastar...")
 
-    local sliderHandle = Instance.new("Frame") -- O "pino" do slider
-    sliderHandle.Parent = sliderBar
-    sliderHandle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    sliderHandle.Size = UDim2.new(0, 10, 1, 0)
-    
-    local currentValue = defaultValue
+        -- Implementação de arrastar personalizada para o MainFrame
+        local isDragging = false
+        local dragStart = Vector2.new(0, 0)
+        local initialPosition = UDim2.new(0, 0, 0, 0)
 
-    local function updateSliderPosition(value)
-        local percentage = (value - minValue) / (maxValue - minValue)
-        -- Ensure the handle stays within the sliderBar bounds
-        local handleX = math.clamp(percentage, 0, 1) * (sliderBar.AbsoluteSize.X - sliderHandle.AbsoluteSize.X)
-        sliderHandle.Position = UDim2.new(0, handleX, 0, 0)
-        sliderLabel.Text = labelText .. ": " .. tostring(math.floor(currentValue))
-    end
-
-    updateSliderPosition(defaultValue)
-
-    local function onInputChanged(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mouseX = input.Position.X - sliderBar.AbsolutePosition.X
-            local percentage = math.clamp(mouseX / sliderBar.AbsoluteSize.X, 0, 1)
-            currentValue = minValue + (maxValue - minValue) * percentage
-            updateSliderPosition(currentValue)
-            if callback then
-                callback(math.floor(currentValue))
+        MainFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isDragging = true
+                dragStart = input.Position
+                initialPosition = MainFrame.Position
+                input.Handled = true
             end
-        end
-    end
+        end)
 
-    sliderBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            local connection
-            connection = UserInputService.InputChanged:Connect(function(inputChanged)
-                onInputChanged(inputChanged)
+        UserInputService.InputChanged:Connect(function(input)
+            if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStart
+                MainFrame.Position = UDim2.new(
+                    initialPosition.X.Scale, initialPosition.X.Offset + delta.X,
+                    initialPosition.Y.Scale, initialPosition.Y.Offset + delta.Y
+                )
+            end
+        end)
+
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                isDragging = false
+            end
+        end)
+
+        print("Funcionalidade de arrastar implementada. Criando Título...")
+
+        -- Título
+        local TitleLabel = Instance.new("TextLabel")
+        TitleLabel.Parent = MainFrame
+        TitleLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TitleLabel.Font = Enum.Font.SourceSansBold
+        TitleLabel.TextSize = 20
+        TitleLabel.Text = "Painel de Cheat v1.0"
+        TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+        TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        TitleLabel.TextWrapped = true
+        TitleLabel.Position = UDim2.new(0, 5, 0, 0)
+
+        print("Título configurado. Criando Abas...")
+
+        -- Abas (Menu Lateral)
+        local TabsFrame = Instance.new("Frame")
+        TabsFrame.Parent = MainFrame
+        TabsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        TabsFrame.Size = UDim2.new(0, 150, 1, -40) -- 150 de largura, altura total menos o título
+        TabsFrame.Position = UDim2.new(0, 0, 0, 40)
+
+        local TabsLayout = Instance.new("UIListLayout")
+        TabsLayout.Parent = TabsFrame
+        TabsLayout.FillDirection = Enum.FillDirection.Vertical
+        TabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        TabsLayout.Padding = UDim.new(0, 5)
+
+        print("Menu de abas configurado. Criando ContentFrame...")
+
+        -- Conteúdo das Abas
+        local ContentFrame = Instance.new("Frame")
+        ContentFrame.Parent = MainFrame
+        ContentFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        ContentFrame.Size = UDim2.new(1, -150, 1, -40) -- Largura total menos a aba, altura total menos o título
+        ContentFrame.Position = UDim2.new(0, 150, 0, 40)
+        ContentFrame.ClipsDescendants = true -- Garante que o conteúdo não vaze
+
+        print("ContentFrame criado. Definindo funções auxiliares...")
+
+        -- Dicionário para armazenar os frames de conteúdo de cada aba
+        local tabContents = {}
+        local currentTab = nil
+
+        -- Função para criar um botão de aba
+        local function createTabButton(name)
+            local TabButton = Instance.new("TextButton")
+            TabButton.Parent = TabsFrame
+            TabButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            TabButton.Font = Enum.Font.SourceSans
+            TabButton.TextSize = 16
+            TabButton.Text = name
+            TabButton.Size = UDim2.new(1, -10, 0, 30) -- -10 para ter um pequeno padding lateral
+            TabButton.AutoButtonColor = false
+            TabButton.BorderColor3 = Color3.fromRGB(20, 20, 20)
+            TabButton.BorderSizePixel = 1
+
+            -- Frame de conteúdo para esta aba
+            local ContentPage = Instance.new("Frame")
+            ContentPage.Parent = ContentFrame
+            ContentPage.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            ContentPage.Size = UDim2.new(1, 0, 1, 0)
+            ContentPage.Position = UDim2.new(0, 0, 0, 0)
+            ContentPage.Visible = false -- Esconde por padrão
+            tabContents[name] = ContentPage
+
+            TabButton.MouseButton1Click:Connect(function()
+                if currentTab then
+                    tabContents[currentTab].Visible = false
+                    -- Resetar cor do botão da aba anterior
+                    local prevTabButton = TabsFrame:FindFirstChild(currentTab .. "TabButton")
+                    if prevTabButton then
+                        prevTabButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                        prevTabButton.BorderColor3 = Color3.fromRGB(20, 20, 20)
+                    end
+                end
+                ContentPage.Visible = true
+                currentTab = name
+                -- Destacar o botão da aba atual
+                TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                TabButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
             end)
-            UserInputService.InputEnded:Connect(function(inputEnded)
-                if inputEnded.UserInputType == Enum.UserInputType.MouseButton1 then
-                    connection:Disconnect()
+
+            TabButton.Name = name .. "TabButton" -- Nome para fácil acesso
+            return TabButton, ContentPage
+        end
+
+        -- Função auxiliar para criar um toggle button
+        local function createToggle(parent, text, defaultState, callback)
+            local toggleButton = Instance.new("TextButton")
+            toggleButton.Parent = parent
+            toggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            toggleButton.Font = Enum.Font.SourceSans
+            toggleButton.TextSize = 16
+            toggleButton.Size = UDim2.new(0.9, 0, 0, 30)
+            toggleButton.AutoButtonColor = false
+
+            local enabled = defaultState
+            local function updateText()
+                toggleButton.Text = text .. ": " .. (enabled and "Ativado" or "Desativado")
+                if enabled then
+                    toggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Verde quando ativado
+                else
+                    toggleButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70) -- Cinza quando desativado
+                end
+            end
+
+            updateText()
+
+            toggleButton.MouseButton1Click:Connect(function()
+                enabled = not enabled
+                updateText()
+                if callback then
+                    callback(enabled)
                 end
             end)
+            return toggleButton, function() return enabled end -- Retorna o botão e uma função para obter o estado
         end
-    end)
 
-    return sliderFrame, function() return math.floor(currentValue) end -- Retorna o frame e uma função para obter o valor
-end
+        -- Função auxiliar para criar um slider
+        local function createSlider(parent, labelText, minValue, maxValue, defaultValue, callback)
+            local sliderFrame = Instance.new("Frame")
+            sliderFrame.Parent = parent
+            sliderFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            sliderFrame.Size = UDim2.new(0.9, 0, 0, 30)
 
--- Função auxiliar para criar uma seção com título e layout
-local function createSection(parent, titleText, contentFrame)
-    local sectionFrame = Instance.new("Frame")
-    sectionFrame.Parent = parent
-    sectionFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    sectionFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
-    sectionFrame.BorderSizePixel = 1
+            local sliderLabel = Instance.new("TextLabel")
+            sliderLabel.Parent = sliderFrame
+            sliderLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            sliderLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            sliderLabel.Font = Enum.Font.SourceSans
+            sliderLabel.TextSize = 14
+            sliderLabel.Text = labelText .. ": " .. tostring(defaultValue)
+            sliderLabel.Size = UDim2.new(0.5, 0, 1, 0)
+            sliderLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    local sectionTitle = Instance.new("TextLabel")
-    sectionTitle.Parent = sectionFrame
-    sectionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    sectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    sectionTitle.Font = Enum.Font.SourceSansBold
-    sectionTitle.TextSize = 18
-    sectionTitle.Text = titleText
-    sectionTitle.Size = UDim2.new(1, 0, 0, 30)
-    sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
-    sectionTitle.Position = UDim2.new(0, 5, 0, 0)
+            local sliderBar = Instance.new("Frame") -- A barra do slider
+            sliderBar.Parent = sliderFrame
+            sliderBar.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+            sliderBar.Size = UDim2.new(0.4, 0, 0.8, 0)
+            sliderBar.Position = UDim2.new(0.5, 0, 0.1, 0)
 
-    local sectionLayout = Instance.new("UIListLayout")
-    sectionLayout.Parent = sectionFrame
-    sectionLayout.FillDirection = Enum.FillDirection.Vertical
-    sectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    sectionLayout.Padding = UDim.new(0, 5)
-    sectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            local sliderHandle = Instance.new("Frame") -- O "pino" do slider
+            sliderHandle.Parent = sliderBar
+            sliderHandle.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            sliderHandle.Size = UDim2.new(0, 10, 1, 0)
+            
+            local currentValue = defaultValue
 
-    -- Adiciona um padding para o título dentro do layout da seção
-    local titleSpacer = Instance.new("Frame")
-    titleSpacer.Parent = sectionFrame
-    titleSpacer.Size = UDim2.new(1, 0, 0, 35) -- Espaço para o título
-    titleSpacer.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    titleSpacer.BackgroundTransparency = 1
-    titleSpacer.LayoutOrder = 1
+            local function updateSliderPosition(value)
+                local percentage = (value - minValue) / (maxValue - minValue)
+                -- Ensure the handle stays within the sliderBar bounds
+                local handleX = math.clamp(percentage, 0, 1) * (sliderBar.AbsoluteSize.X - sliderHandle.AbsoluteSize.X)
+                sliderHandle.Position = UDim2.new(0, handleX, 0, 0)
+                sliderLabel.Text = labelText .. ": " .. tostring(math.floor(value))
+            end
 
-    return sectionFrame, sectionLayout
-end
+            updateSliderPosition(defaultValue)
 
--- Criar abas e seus conteúdos
-local aimTabButton, aimContent = createTabButton("Aim")
-local silentAimTabButton, silentAimContent = createTabButton("Silent Aim")
-local triggerBotTabButton, triggerBotContent = createTabButton("Trigger Bot")
-local visualsTabButton, visualsContent = createTabButton("Visuals")
-local playersTabButton, playersContent = createTabButton("Players")
-local vehiclesTabButton, vehiclesContent = createTabButton("Vehicles")
-local worldTabButton, worldContent = createTabButton("World")
-local exploitsTabButton, exploitsContent = createTabButton("Exploits")
-local teleportTabButton, teleportContent = createTabButton("Teleport")
-local configTabButton, configContent = createTabButton("Configurações")
+            local function onInputChanged(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local mouseX = input.Position.X - sliderBar.AbsolutePosition.X
+                    local percentage = math.clamp(mouseX / sliderBar.AbsoluteSize.X, 0, 1)
+                    currentValue = minValue + (maxValue - minValue) * percentage
+                    updateSliderPosition(currentValue)
+                    if callback then
+                        callback(math.floor(currentValue))
+                    end
+                end
+            end
 
--- Selecionar a primeira aba por padrão
-aimTabButton:MouseButton1Click()
+            sliderBar.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    local connection
+                    connection = UserInputService.InputChanged:Connect(function(inputChanged)
+                        onInputChanged(inputChanged)
+                    end)
+                    UserInputService.InputEnded:Connect(function(inputEnded)
+                        if inputEnded.UserInputType == Enum.UserInputType.MouseButton1 then
+                            connection:Disconnect()
+                        end
+                    end)
+                end
+            end)
 
-----------------------------------------------------------------------------------------------------
--- Aba 'Aim'
-----------------------------------------------------------------------------------------------------
+            return sliderFrame, function() return math.floor(currentValue) end -- Retorna o frame e uma função para obter o valor
+        end
 
--- Layout para a aba Aim
-local aimLayout = Instance.new("UIGridLayout") -- Usar UIGridLayout para organizar as seções lado a lado
-aimLayout.Parent = aimContent
-aimLayout.CellSize = UDim2.new(0.48, 0, 0.3, 0) -- Tamanho das células
-aimLayout.CellPadding = UDim2.new(0.01, 0, 0.01, 0) -- Espaçamento entre as células
-aimLayout.FillDirectionMaxCells = 2 -- Duas colunas
-aimLayout.StartCorner = Enum.StartCorner.TopLeft
-aimLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-aimLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+        -- Função auxiliar para criar uma seção com título e layout
+        local function createSection(parent, titleText)
+            local sectionFrame = Instance.new("Frame")
+            sectionFrame.Parent = parent
+            sectionFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            sectionFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+            sectionFrame.BorderSizePixel = 1
 
--- Seção Aimbot
-local aimbotSection, aimbotSectionLayout = createSection(aimContent, "Aimbot")
+            local sectionTitle = Instance.new("TextLabel")
+            sectionTitle.Parent = sectionFrame
+            sectionTitle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            sectionTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+            sectionTitle.Font = Enum.Font.SourceSansBold
+            sectionTitle.TextSize = 18
+            sectionTitle.Text = titleText
+            sectionTitle.Size = UDim2.new(1, 0, 0, 30)
+            sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
+            sectionTitle.Position = UDim2.new(0, 5, 0, 0)
 
-local aimbotToggle, getAimbotState = createToggle(aimbotSection, "Ativar Aimbot", false, function(state)
-    print("Aimbot Ativado: " .. tostring(state))
-end)
-aimbotToggle.LayoutOrder = 2
+            local sectionLayout = Instance.new("UIListLayout")
+            sectionLayout.Parent = sectionFrame
+            sectionLayout.FillDirection = Enum.FillDirection.Vertical
+            sectionLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            sectionLayout.Padding = UDim.new(0, 5)
+            sectionLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local fovSliderFrame, getFovValue = createSlider(aimbotSection, "Campo de Visão", 0, 360, 72, function(value)
-    print("Campo de Visão: " .. tostring(value))
-end)
-fovSliderFrame.LayoutOrder = 3
+            -- Adiciona um padding para o título dentro do layout da seção
+            local titleSpacer = Instance.new("Frame")
+            titleSpacer.Parent = sectionFrame
+            titleSpacer.Size = UDim2.new(1, 0, 0, 35) -- Espaço para o título
+            titleSpacer.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+            titleSpacer.BackgroundTransparency = 1
+            titleSpacer.LayoutOrder = 1
 
--- Seção Precisão (Aimbot)
-local precisionSection, precisionSectionLayout = createSection(aimContent, "Precisão")
+            return sectionFrame, sectionLayout
+        end
 
-local verticalSmoothnessSliderFrame, getVerticalSmoothnessValue = createSlider(precisionSection, "Suavidade Vertical", 0, 100, 12, function(value)
-    print("Suavidade Vertical: " .. tostring(value))
-end)
-verticalSmoothnessSliderFrame.LayoutOrder = 2
+        print("Funções auxiliares definidas. Criando abas...")
 
-local horizontalSmoothnessSliderFrame, getHorizontalSmoothnessValue = createSlider(precisionSection, "Suavidade Horizontal", 0, 100, 12, function(value)
-    print("Suavidade Horizontal: " .. tostring(value))
-end)
-horizontalSmoothnessSliderFrame.LayoutOrder = 3
+        -- Criar abas e seus conteúdos
+        local aimTabButton, aimContent = createTabButton("Aim")
+        local silentAimTabButton, silentAimContent = createTabButton("Silent Aim")
+        local triggerBotTabButton, triggerBotContent = createTabButton("Trigger Bot")
+        local visualsTabButton, visualsContent = createTabButton("Visuals")
+        local playersTabButton, playersContent = createTabButton("Players")
+        local vehiclesTabButton, vehiclesContent = createTabButton("Vehicles")
+        local worldTabButton, worldContent = createTabButton("World")
+        local exploitsTabButton, exploitsContent = createTabButton("Exploits")
+        local teleportTabButton, teleportContent = createTabButton("Teleport")
+        local configTabButton, configContent = createTabButton("Configurações")
 
-local maxDistanceSliderFrame, getMaxDistanceValue = createSlider(precisionSection, "Distância Máxima", 0, 1000, 240, function(value)
-    print("Distância Máxima: " .. tostring(value) .. "m")
-end)
-maxDistanceSliderFrame.LayoutOrder = 4
+        print("Botões de abas e conteúdos criados. Selecionando aba inicial...")
 
--- Seção Geral (Aimbot)
-local generalSection, generalSectionLayout = createSection(aimContent, "Geral")
+        -- Selecionar a primeira aba por padrão
+        aimTabButton:MouseButton1Click()
 
-local activateAimAssistToggle, getAimAssistState = createToggle(generalSection, "Ativar Assistência de Mira", false, function(state)
-    print("Assistência de Mira Ativada: " .. tostring(state))
-end)
-activateAimAssistToggle.LayoutOrder = 2
+        print("Aba 'Aim' selecionada por padrão. Preenchendo abas com conteúdo...")
 
-local showFovToggle, getFovShownState = createToggle(generalSection, "Mostrar Campo de Visão", false, function(state)
-    print("Mostrar Campo de Visão: " .. tostring(state))
-end)
-showFovToggle.LayoutOrder = 3
+        ----------------------------------------------------------------------------------------------------
+        -- Aba 'Aim'
+        ----------------------------------------------------------------------------------------------------
 
--- Seção Diversos (Aimbot)
-local diverseSection, diverseSectionLayout = createSection(aimContent, "Diversos")
+        -- Layout para a aba Aim
+        local aimLayout = Instance.new("UIGridLayout") -- Usar UIGridLayout para organizar as seções lado a lado
+        aimLayout.Parent = aimContent
+        aimLayout.CellSize = UDim2.new(0.48, 0, 0.3, 0) -- Tamanho das células
+        aimLayout.CellPadding = UDim2.new(0.01, 0, 0.01, 0) -- Espaçamento entre as células
+        aimLayout.FillDirectionMaxCells = 2 -- Duas colunas
+        aimLayout.StartCorner = Enum.StartCorner.TopLeft
+        aimLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+        aimLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
-local visibleOnlyToggle, getVisibleOnlyState = createToggle(diverseSection, "Apenas Visíveis", false, function(state)
-    print("Apenas Visíveis: " .. tostring(state))
-end)
-visibleOnlyToggle.LayoutOrder = 2
+        -- Seção Aimbot
+        local aimbotSection, aimbotSectionLayout = createSection(aimContent, "Aimbot")
 
-local ignoreNpcsToggle, getIgnoreNpcsState = createToggle(diverseSection, "Ignorar NPCs", false, function(state)
-    print("Ignorar NPCs: " .. tostring(state))
-end)
-ignoreNpcsToggle.LayoutOrder = 3
+        local aimbotToggle, getAimbotState = createToggle(aimbotSection, "Ativar Aimbot", false, function(state)
+            print("Aimbot Ativado: " .. tostring(state))
+        end)
+        aimbotToggle.LayoutOrder = 2
 
-----------------------------------------------------------------------------------------------------
--- Aba 'Silent Aim'
-----------------------------------------------------------------------------------------------------
-
--- Layout para a aba Silent Aim
-local silentAimLayout = Instance.new("UIGridLayout")
-silentAimLayout.Parent = silentAimContent
-silentAimLayout.CellSize = UDim2.new(0.48, 0, 0.3, 0)
-silentAimLayout.CellPadding = UDim2.new(0.01, 0, 0.01, 0)
-silentAimLayout.FillDirectionMaxCells = 2
-silentAimLayout.StartCorner = Enum.StartCorner.TopLeft
-silentAimLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-silentAimLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-
--- Seção Override Config (Silent Aim)
-local overrideConfigSection, overrideConfigLayout = createSection(silentAimContent, "Override config")
-
-local silentAimKeyLabel = Instance.new("TextLabel")
-silentAimKeyLabel.Parent = overrideConfigSection
-silentAimKeyLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-silentAimKeyLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-silentAimKeyLabel.Font = Enum.Font.SourceSans
-silentAimKeyLabel.TextSize = 16
-silentAimKeyLabel.Text = "Tecla de Mira Silenciosa: Right Mouse Button - Silent"
-silentAimKeyLabel.Size = UDim2.new(0.9, 0, 0, 30)
-silentAimKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
-silentAimKeyLabel.LayoutOrder = 2
-
--- Seção Geral (Silent Aim)
-local silentAimGeneralSection, silentAimGeneralLayout = createSection(silentAimContent, "Geral")
-
-local activateSilentAimToggle, getSilentAimState = createToggle(silentAimGeneralSection, "Ativar", false, function(state)
-    print("Silent Aim Ativado: " .. tostring(state))
-end)
-activateSilentAimToggle.LayoutOrder = 2
-
+        local fovSliderFrame, getFovValue = createSlider(aimbotSection, "Campo de Visão", 0, 360, 7
 (Content truncated due to size limit. Use line ranges to read remaining content)
