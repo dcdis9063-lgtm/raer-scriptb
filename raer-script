@@ -1,43 +1,43 @@
--[[
-    RAER ULTRA CHEAT V4 | ULTRA-LITE V2
-    Versão: SUPER COMPATÍVEL (Xeno) + SENSIBILIDADE
+--[[
+    RAER ULTRA CHEAT V3 | RESTAURADO + SELETOR DE PARTE
+    Desenvolvido para: Xeno Executor
+    Estruturado para: Visual Studio Code (Lua)
     
-    Funções:
-    - Aimbot Lock-On (Botão Direito) com Sensibilidade (Smoothness)
-    - Speed Hack (Tecla V)
-    - Fly (Tecla F)
-    - Teleport (Ctrl + Click)
+    Instruções:
+    - Pressione 'P' para abrir/fechar o painel RAER.
+    - Pressione 'F' para ativar/desativar o Fly.
+    - SEGURE O BOTÃO DIREITO DO MOUSE para o Aimbot grudar.
 ]]
 
 -- ================================================
 -- CONFIGURAÇÕES (Editáveis no VS Code)
 -- ================================================
 local Settings = {
-    -- AIMBOT
+    -- AIMBOT (MODO APELÃO)
     Aim_Enabled = true,
     Aim_FOV = 300,
     Aim_Part = "Head", -- "Head", "HumanoidRootPart", "LeftFoot"
+    Aim_TeamCheck = false,
+    Aim_FriendCheck = true,
+    Aim_VisibleCheck = false,
     Aim_Key = Enum.UserInputType.MouseButton2,
     
-    -- SENSIBILIDADE (NOVO)
-    -- 0.0 = Instantâneo (Rage)
-    -- 0.1 a 0.5 = Suave (Legit)
-    Aim_Smoothness = 0.0, 
-
+    -- ESP
+    ESP_Enabled = true,
+    ESP_Box = true,
+    ESP_Names = true,
+    
     -- FLY
     Fly_Enabled = false,
     Fly_Speed = 80,
-    
+
     -- SPEED HACK
     Speed_Enabled = false,
     Walk_Speed = 100,
     
-    -- TELEPORT
-    TP_Enabled = true,
-    
-    -- TECLAS DE ATALHO
-    FlyKey = Enum.KeyCode.F,
-    SpeedKey = Enum.KeyCode.V
+    -- GERAL
+    MenuKey = Enum.KeyCode.P,
+    FlyKey = Enum.KeyCode.F
 }
 
 -- ================================================
@@ -46,21 +46,31 @@ local Settings = {
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
+-- FOV Circle
+local FOV_Circle = Drawing.new("Circle")
+FOV_Circle.Thickness = 2
+FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
+FOV_Circle.Filled = false
+FOV_Circle.Transparency = 1
+FOV_Circle.Visible = false
+
 -- ================================================
--- LÓGICA DO AIMBOT (COM SENSIBILIDADE)
+-- LÓGICA DO AIMBOT (LOCK-ON FORÇADO)
 -- ================================================
 local function GetClosestPlayer()
     local target = nil
     local shortestDistance = Settings.Aim_FOV
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(Settings.Aim_Part) then
+            if Settings.Aim_TeamCheck and player.Team == LocalPlayer.Team then continue end
+            if Settings.Aim_FriendCheck and LocalPlayer:IsFriendsWith(player.UserId) then continue end
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
             if not hum or hum.Health <= 0 then continue end
-            
             local targetPart = player.Character[Settings.Aim_Part]
             local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
             if onScreen then
@@ -77,48 +87,36 @@ local function GetClosestPlayer()
 end
 
 RunService.RenderStepped:Connect(function()
-    if Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
-        local target = GetClosestPlayer()
-        if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
-            local targetPos = target.Character[Settings.Aim_Part].Position
-            
-            if Settings.Aim_Smoothness > 0 then
-                -- MODO SUAVE (Legit)
-                local currentCFrame = Camera.CFrame
-                local targetCFrame = CFrame.new(currentCFrame.Position, targetPos)
-                Camera.CFrame = currentCFrame:Lerp(targetCFrame, Settings.Aim_Smoothness)
-            else
-                -- MODO INSTANTÂNEO (Rage)
-                Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+    if Settings.Aim_Enabled then
+        FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+        FOV_Circle.Radius = Settings.Aim_FOV
+        FOV_Circle.Visible = true
+        if UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
+            local target = GetClosestPlayer()
+            if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character[Settings.Aim_Part].Position)
             end
         end
+    else
+        FOV_Circle.Visible = false
     end
 end)
 
 -- ================================================
--- LÓGICA DE TELEPORT (CTRL + CLICK)
+-- LÓGICA DO SPEED HACK
 -- ================================================
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and Settings.TP_Enabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.p + Vector3.new(0, 3, 0))
-            end
-        end
-    end
-end)
-
--- ================================================
--- LÓGICA DO SPEED HACK & FLY
--- ================================================
-local bv = Instance.new("BodyVelocity")
-local bg = Instance.new("BodyGyro")
-
 RunService.Heartbeat:Connect(function()
     if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
     end
-    
+end)
+
+-- ================================================
+-- LÓGICA DO FLY
+-- ================================================
+local bv = Instance.new("BodyVelocity")
+local bg = Instance.new("BodyGyro")
+RunService.RenderStepped:Connect(function()
     if Settings.Fly_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local root = LocalPlayer.Character.HumanoidRootPart
         bv.Parent = root
@@ -141,18 +139,149 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ================================================
--- ATALHOS DE TECLADO
+-- INTERFACE GRÁFICA (PAINEL RAER V3 RESTAURADO)
 -- ================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RAER_Panel_V3"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.Size = UDim2.new(0, 200, 0, 420)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.BorderSizePixel = 0
+
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Title.Text = "RAER CHEAT V3"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+
+local Container = Instance.new("ScrollingFrame")
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 5, 0, 40)
+Container.Size = UDim2.new(1, -10, 1, -45)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 0, 550)
+Container.ScrollBarThickness = 2
+
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = Container
+UIList.Padding = UDim.new(0, 5)
+
+local function AddToggle(text, key)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Container
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(function()
+        Settings[key] = not Settings[key]
+        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+    end)
+end
+
+-- Botões
+AddToggle("Aimbot Master", "Aim_Enabled")
+AddToggle("Ignorar Amigos", "Aim_FriendCheck")
+AddToggle("ESP Master", "ESP_Enabled")
+AddToggle("ESP Box", "ESP_Box")
+AddToggle("Fly (F)", "Fly_Enabled")
+AddToggle("Speed Hack", "Speed_Enabled")
+
+-- Seletor de Parte do Corpo
+local PartLabel = Instance.new("TextLabel")
+PartLabel.Parent = Container
+PartLabel.Size = UDim2.new(1, 0, 0, 20)
+PartLabel.BackgroundTransparency = 1
+PartLabel.Text = "Mirar em: " .. Settings.Aim_Part
+PartLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+PartLabel.Font = Enum.Font.Gotham
+
+local function AddPartBtn(text, part)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Container
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.MouseButton1Click:Connect(function()
+        Settings.Aim_Part = part
+        PartLabel.Text = "Mirar em: " .. part
+    end)
+end
+
+AddPartBtn("MIRA: CABEÇA", "Head")
+AddPartBtn("MIRA: PEITO", "HumanoidRootPart")
+AddPartBtn("MIRA: PÉ", "LeftFoot")
+
+-- Slider de FOV
+local FOVLabel = Instance.new("TextLabel")
+FOVLabel.Parent = Container
+FOVLabel.Size = UDim2.new(1, 0, 0, 20)
+FOVLabel.BackgroundTransparency = 1
+FOVLabel.Text = "FOV: " .. Settings.Aim_FOV
+FOVLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVLabel.Font = Enum.Font.Gotham
+
+local FOVBtnPlus = Instance.new("TextButton")
+FOVBtnPlus.Parent = Container
+FOVBtnPlus.Size = UDim2.new(1, 0, 0, 25)
+FOVBtnPlus.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+FOVBtnPlus.Text = "Aumentar FOV (+50)"
+FOVBtnPlus.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVBtnPlus.Font = Enum.Font.Gotham
+FOVBtnPlus.MouseButton1Click:Connect(function()
+    Settings.Aim_FOV = Settings.Aim_FOV + 50
+    FOVLabel.Text = "FOV: " .. Settings.Aim_FOV
+end)
+
+-- Atalhos
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
-    if input.KeyCode == Settings.FlyKey then
+    if input.KeyCode == Settings.MenuKey then
+        MainFrame.Visible = not MainFrame.Visible
+    elseif input.KeyCode == Settings.FlyKey then
         Settings.Fly_Enabled = not Settings.Fly_Enabled
-        print("[RAER] Fly: " .. (Settings.Fly_Enabled and "ON" or "OFF"))
-    elseif input.KeyCode == Settings.SpeedKey then
-        Settings.Speed_Enabled = not Settings.Speed_Enabled
-        print("[RAER] Speed: " .. (Settings.Speed_Enabled and "ON" or "OFF"))
     end
 end)
 
-print("[RAER V4 ULTRA-LITE V2] Script carregado com sucesso!")
-print("Aimbot: Botão Direito | Fly: F | Speed: V | Teleport: Ctrl + Click")
+-- ESP OTIMIZADO
+local function CreateESP(p)
+    if p == LocalPlayer then return end
+    local box = Drawing.new("Square")
+    box.Color = Color3.fromRGB(255, 0, 0)
+    box.Thickness = 1
+    RunService.RenderStepped:Connect(function()
+        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+            local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local dist = (Camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
+                local size = (Camera.ViewportSize.Y / dist) * 2
+                if Settings.ESP_Box then
+                    box.Size = Vector2.new(size * 1.5, size * 2)
+                    box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
+                    box.Visible = true
+                else box.Visible = false end
+            else box.Visible = false end
+        else box.Visible = false end
+    end)
+end
+Players.PlayerAdded:Connect(CreateESP)
+for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
+
+-- Limpar logs finais
+print = function() end
+warn = function() end
+error = function() end
