@@ -1,43 +1,35 @@
 --[[
-    RAER ULTIMATE CHEAT | V4 NO RECOIL EDITION
-    Inspirado no Design: SKECH (Dark/Red)
+    RAER ULTRA CHEAT | V4 XENO-NATIVE
     Desenvolvido para: Xeno Executor
     
-    Novidades V4 NO RECOIL:
-    - Adicionada Função No Recoil (Sem Recuo)
-    - Removida Tela de Login (Carregamento Instantâneo)
-    - Aimbot Universal (Compatível com R6 e R15)
-    - Detecção Automática de Partes (Cabeça, Peito, Pé)
-    - Todas as funções anteriores (ESP, Speed, Fly, TP)
+    Novidades V4 XENO-NATIVE:
+    - Interface 100% Nativa (Sem Drawing/Efeitos Pesados)
+    - Aimbot Universal (R6 e R15)
+    - ESP Highlight (Visível através de paredes)
+    - No Recoil, Speed, Fly e Click TP
 ]]
 
 -- ================================================
 -- CONFIGURAÇÕES INICIAIS
 -- ================================================
 local Settings = {
-    -- AIMBOT
     Aim_Enabled = false,
+    Aim_Part = "Head", -- "Head", "Torso", "Feet"
     Aim_FOV = 300,
     Aim_Smoothness = 0,
-    Aim_Part = "Head",
     Aim_TeamCheck = true,
     Aim_FriendCheck = true,
-    Aim_NoRecoil = false, -- Nova Função
+    Aim_NoRecoil = false,
     Aim_Key = Enum.UserInputType.MouseButton2,
     
-    -- ESP
     ESP_Enabled = false,
-    ESP_Box = false,
-    ESP_Names = false,
     
-    -- PLAYER
     Fly_Enabled = false,
     Fly_Speed = 80,
     Speed_Enabled = false,
     Walk_Speed = 100,
     TP_Enabled = false,
     
-    -- GERAL
     MenuKey = Enum.KeyCode.P,
     FlyKey = Enum.KeyCode.F
 }
@@ -54,227 +46,90 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (MAIN PANEL PREMIUM)
+-- INTERFACE GRÁFICA (NATIVA E LEVE)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate_V4_NoRecoil"
+ScreenGui.Name = "RAER_Xeno_Native"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Size = UDim2.new(0, 550, 0, 380)
-MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
-MainFrame.BorderSizePixel = 0
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.Size = UDim2.new(0, 220, 0, 420)
+MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 MainFrame.Active = true
 MainFrame.Draggable = true
 
-local Border = Instance.new("Frame")
-Border.Parent = MainFrame
-Border.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-Border.Size = UDim2.new(1, 2, 1, 2)
-Border.Position = UDim2.new(0, -1, 0, -1)
-Border.ZIndex = 0
-Border.BorderSizePixel = 0
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+Title.Text = "RAER ULTRA V4"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
 
-local Sidebar = Instance.new("Frame")
-Sidebar.Name = "Sidebar"
-Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-Sidebar.Size = UDim2.new(0, 120, 1, 0)
-Sidebar.BorderSizePixel = 0
+local Container = Instance.new("ScrollingFrame")
+Container.Parent = MainFrame
+Container.Position = UDim2.new(0, 5, 0, 35)
+Container.Size = UDim2.new(1, -10, 1, -40)
+Container.BackgroundTransparency = 1
+Container.CanvasSize = UDim2.new(0, 0, 0, 550)
+Container.ScrollBarThickness = 2
 
-local Logo = Instance.new("TextLabel")
-Logo.Parent = Sidebar
-Logo.Size = UDim2.new(1, 0, 0, 50)
-Logo.BackgroundTransparency = 1
-Logo.Text = "RAER"
-Logo.TextColor3 = Color3.fromRGB(255, 0, 0)
-Logo.Font = Enum.Font.GothamBold
-Logo.TextSize = 24
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = Container
+UIList.Padding = UDim.new(0, 5)
 
-local TabContainer = Instance.new("Frame")
-TabContainer.Name = "TabContainer"
-TabContainer.Parent = MainFrame
-TabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TabContainer.Position = UDim2.new(0, 130, 0, 10)
-TabContainer.Size = UDim2.new(1, -140, 1, -20)
-TabContainer.BorderSizePixel = 0
-
-local Pages = {}
-local function CreatePage(name)
-    local Page = Instance.new("ScrollingFrame")
-    Page.Name = name .. "Page"
-    Page.Parent = TabContainer
-    Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.BackgroundTransparency = 1
-    Page.Visible = false
-    Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 550)
-    local UIList = Instance.new("UIListLayout")
-    UIList.Parent = Page
-    UIList.Padding = UDim.new(0, 10)
-    UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    Pages[name] = Page
-    return Page
-end
-
-local AimPage = CreatePage("Aim")
-local VisualsPage = CreatePage("Visuals")
-local PlayerPage = CreatePage("Player")
-AimPage.Visible = true
-
-local function AddTabButton(name, page)
+local function AddToggle(text, key)
     local btn = Instance.new("TextButton")
-    btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, 0, 0, 40)
-    btn.Position = UDim2.new(0, 0, 0, 60 + (#Sidebar:GetChildren() - 2) * 45)
-    btn.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    btn.BorderSizePixel = 0
-    btn.Text = name
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(Pages) do p.Visible = false end
-        page.Visible = true
-        for _, b in pairs(Sidebar:GetChildren()) do
-            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 0, 0) end
-        end
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end)
-end
-
-AddTabButton("Aimbot", AimPage)
-AddTabButton("Visuals", VisualsPage)
-AddTabButton("Player", PlayerPage)
-
--- Elementos da UI (Toggles, Sliders, Selectors)
-local function AddToggle(parent, text, settingKey)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.9, 0, 0, 30)
-    frame.BackgroundTransparency = 1
-    frame.Parent = parent
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.7, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 40, 0, 20)
-    btn.Position = UDim2.new(1, -45, 0.5, -10)
-    btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(40, 40, 40)
-    btn.Text = ""
-    btn.BorderSizePixel = 0
-    btn.Parent = frame
-    btn.MouseButton1Click:Connect(function()
-        Settings[settingKey] = not Settings[settingKey]
-        btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(40, 40, 40)
-    end)
-end
-
-local function AddSlider(parent, text, settingKey, min, max)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.9, 0, 0, 50)
-    frame.BackgroundTransparency = 1
-    frame.Parent = parent
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, 0, 0, 20)
-    label.BackgroundTransparency = 1
-    label.Text = text .. ": " .. Settings[settingKey]
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-    local sliderBg = Instance.new("Frame")
-    sliderBg.Size = UDim2.new(1, 0, 0, 5)
-    sliderBg.Position = UDim2.new(0, 0, 0, 30)
-    sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    sliderBg.BorderSizePixel = 0
-    sliderBg.Parent = frame
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Size = UDim2.new((Settings[settingKey] - min) / (max - min), 0, 1, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    sliderFill.BorderSizePixel = 0
-    sliderFill.Parent = sliderBg
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = ""
-    btn.Parent = sliderBg
-    btn.MouseButton1Down:Connect(function()
-        local moveConn
-        moveConn = RunService.RenderStepped:Connect(function()
-            local mousePos = UserInputService:GetMouseLocation().X
-            local relativePos = mousePos - sliderBg.AbsolutePosition.X
-            local percentage = math.clamp(relativePos / sliderBg.AbsoluteSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * percentage)
-            Settings[settingKey] = value
-            sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-            label.Text = text .. ": " .. value
-        end)
-        UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                if moveConn then moveConn:Disconnect() end
-            end
-        end)
-    end)
-end
-
-local function AddSelector(parent, text, settingKey, options)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.9, 0, 0, 40)
-    frame.BackgroundTransparency = 1
-    frame.Parent = parent
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.4, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.Font = Enum.Font.Gotham
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = frame
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.5, 0, 0, 25)
-    btn.Position = UDim2.new(0.5, 0, 0.5, -12)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.Text = Settings[settingKey]
+    btn.Parent = Container
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+    btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.Gotham
+    btn.TextSize = 12
     btn.BorderSizePixel = 0
-    btn.Parent = frame
+    btn.MouseButton1Click:Connect(function()
+        Settings[key] = not Settings[key]
+        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
+    end)
+end
+
+local function AddSelector(text, key, options)
+    local btn = Instance.new("TextButton")
+    btn.Parent = Container
+    btn.Size = UDim2.new(1, 0, 0, 25)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.Text = text .. ": " .. Settings[key]
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 12
+    btn.BorderSizePixel = 0
     local currentIdx = 1
     btn.MouseButton1Click:Connect(function()
         currentIdx = currentIdx + 1
         if currentIdx > #options then currentIdx = 1 end
-        Settings[settingKey] = options[currentIdx]
-        btn.Text = options[currentIdx]
+        Settings[key] = options[currentIdx]
+        btn.Text = text .. ": " .. options[currentIdx]
     end)
 end
 
--- Preenchendo as Abas
-AddToggle(AimPage, "Enable Aimbot", "Aim_Enabled")
-AddToggle(AimPage, "Team Check", "Aim_TeamCheck")
-AddToggle(AimPage, "Friend Check", "Aim_FriendCheck")
-AddToggle(AimPage, "No Recoil", "Aim_NoRecoil") -- Nova Opção
-AddSlider(AimPage, "Field of View", "Aim_FOV", 50, 800)
-AddSlider(AimPage, "Smoothness", "Aim_Smoothness", 0, 10)
-AddSelector(AimPage, "Hitbox", "Aim_Part", {"Head", "Torso", "Feet"})
-
-AddToggle(VisualsPage, "Enable ESP", "ESP_Enabled")
-AddToggle(VisualsPage, "Box ESP", "ESP_Box")
-AddToggle(VisualsPage, "Name ESP", "ESP_Names")
-
-AddToggle(PlayerPage, "Enable Speed", "Speed_Enabled")
-AddSlider(PlayerPage, "Walk Speed", "Walk_Speed", 16, 300)
-AddToggle(PlayerPage, "Enable Fly", "Fly_Enabled")
-AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
-AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled")
+-- Botões do Painel
+AddToggle("Aimbot Master", "Aim_Enabled")
+AddToggle("Team Check", "Aim_TeamCheck")
+AddToggle("Friend Check", "Aim_FriendCheck")
+AddToggle("No Recoil", "Aim_NoRecoil")
+AddSelector("Mira em", "Aim_Part", {"Head", "Torso", "Feet"})
+AddToggle("ESP Highlight", "ESP_Enabled")
+AddToggle("Speed Hack", "Speed_Enabled")
+AddToggle("Fly (F)", "Fly_Enabled")
+AddToggle("Click TP (Ctrl+Click)", "TP_Enabled")
 
 -- ================================================
 -- LÓGICA DO AIMBOT UNIVERSAL (R6/R15)
@@ -315,11 +170,7 @@ RunService.RenderStepped:Connect(function()
             end
         end
         if target then
-            if Settings.Aim_Smoothness > 0 then
-                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), 1 / (Settings.Aim_Smoothness + 1))
-            else
-                Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
-            end
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
         end
     end
 end)
@@ -330,10 +181,8 @@ end)
 local OldCFrame = Camera.CFrame
 RunService.RenderStepped:Connect(function()
     if Settings.Aim_NoRecoil then
-        -- Tenta anular o recuo da câmera forçando a posição anterior se houver mudança brusca
         local currentCFrame = Camera.CFrame
         if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-            -- Se estiver atirando, tenta estabilizar a câmera
             Camera.CFrame = OldCFrame:Lerp(currentCFrame, 0.1)
         end
     end
@@ -383,29 +232,31 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-local function CreateESP(p)
-    if p == LocalPlayer then return end
-    local box = Drawing.new("Square")
-    box.Color = Color3.fromRGB(255, 0, 0)
-    box.Thickness = 1
-    local name = Drawing.new("Text")
-    name.Color = Color3.fromRGB(255, 255, 255)
-    name.Size = 14
-    name.Center = true
-    name.Outline = true
-    RunService.RenderStepped:Connect(function()
-        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local dist = (Camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                local size = (Camera.ViewportSize.Y / dist) * 2
-                if Settings.ESP_Box then
-                    box.Size = Vector2.new(size * 1.5, size * 2)
-                    box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
-                    box.Visible = true
-                else box.Visible = false end
-                if Settings.ESP_Names then
-                    name.Text = p.Name
-                    name.Position = Vector2.new(pos.X, pos.Y - (size * 1.2))
-            
-(Content truncated due to size limit. Use line ranges to read remaining content)
+-- ESP HIGHLIGHT (NATIVO)
+RunService.RenderStepped:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local highlight = player.Character:FindFirstChild("RAER_ESP")
+            if Settings.ESP_Enabled then
+                if not highlight then
+                    highlight = Instance.new("Highlight")
+                    highlight.Name = "RAER_ESP"
+                    highlight.Parent = player.Character
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                end
+            else
+                if highlight then highlight:Destroy() end
+            end
+        end
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, processed)
+    if processed then return end
+    if input.KeyCode == Settings.MenuKey then
+        MainFrame.Visible = not MainFrame.Visible
+    end
+end)
+
+print("[RAER ULTRA V4 XENO-NATIVE] Carregado com sucesso!")
