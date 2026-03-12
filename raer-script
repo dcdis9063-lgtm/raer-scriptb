@@ -1,13 +1,11 @@
 --[[
-    RAER ULTIMATE CHEAT | PREMIUM EDITION
+    RAER ULTIMATE CHEAT | PREMIUM EDITION V3
     Inspirado no Design: SKECH (Dark/Red)
     Desenvolvido para: Xeno Executor
     
-    Funções:
-    - Aimbot (Hitbox: Head, Torso, Feet)
-    - ESP (Box, Names, Distance)
-    - Player (Speed, Fly)
-    - UI Premium com Abas Laterais
+    Novidades V3:
+    - Opção de Teleport (Click TP: Ctrl + Clique Esquerdo)
+    - Melhorias na aba Player
 ]]
 
 -- ================================================
@@ -18,7 +16,7 @@ local Settings = {
     Aim_FOV = 300,
     Aim_Smoothness = 0,
     Aim_Part = "Head",
-    Aim_TeamCheck = false,
+    Aim_TeamCheck = true,
     Aim_FriendCheck = true,
     Aim_Key = Enum.UserInputType.MouseButton2,
     
@@ -30,6 +28,9 @@ local Settings = {
     Fly_Speed = 80,
     Speed_Enabled = false,
     Walk_Speed = 100,
+    
+    -- NOVO: TELEPORT
+    TP_Enabled = false,
     
     MenuKey = Enum.KeyCode.P,
     FlyKey = Enum.KeyCode.F
@@ -50,7 +51,7 @@ local Mouse = LocalPlayer:GetMouse()
 -- INTERFACE GRÁFICA (PREMIUM DESIGN)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate"
+ScreenGui.Name = "RAER_Ultimate_V3"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -58,8 +59,8 @@ local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Size = UDim2.new(0, 550, 0, 350)
-MainFrame.Position = UDim2.new(0.5, -275, 0.5, -175)
+MainFrame.Size = UDim2.new(0, 550, 0, 380)
+MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -109,7 +110,7 @@ local function CreatePage(name)
     Page.BackgroundTransparency = 1
     Page.Visible = false
     Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 500)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 550)
     
     local UIList = Instance.new("UIListLayout")
     UIList.Parent = Page
@@ -142,9 +143,9 @@ local function AddTabButton(name, page)
         for _, p in pairs(Pages) do p.Visible = false end
         page.Visible = true
         for _, b in pairs(Sidebar:GetChildren()) do
-            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 200, 200) end
+            if b:IsA("TextButton") then b.TextColor3 = Color3.fromRGB(200, 0, 0) end
         end
-        btn.TextColor3 = Color3.fromRGB(255, 0, 0)
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
 end
 
@@ -285,9 +286,10 @@ AddToggle(PlayerPage, "Enable Speed", "Speed_Enabled")
 AddSlider(PlayerPage, "Walk Speed", "Walk_Speed", 16, 300)
 AddToggle(PlayerPage, "Enable Fly", "Fly_Enabled")
 AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
+AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled") -- NOVA OPÇÃO
 
 -- ================================================
--- LÓGICA DAS FUNÇÕES (Aimbot, ESP, Speed, Fly)
+-- LÓGICA DAS FUNÇÕES (Aimbot, ESP, Speed, Fly, TP)
 -- ================================================
 
 -- Função para encontrar a parte correta
@@ -366,6 +368,17 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+-- Teleport (Click TP)
+UserInputService.InputBegan:Connect(function(input, processed)
+    if not processed and Settings.TP_Enabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.p + Vector3.new(0, 3, 0))
+            end
+        end
+    end
+end)
+
 -- ESP
 local function CreateESP(p)
     if p == LocalPlayer then return end
@@ -409,4 +422,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("[RAER ULTIMATE] Script carregado com sucesso!")
+print("[RAER ULTIMATE V3] Script carregado com sucesso!")
