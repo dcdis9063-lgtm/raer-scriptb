@@ -1,12 +1,13 @@
 --[[
-    RAER ULTRA CHEAT | V4 XENO-NATIVE
+    RAER ULTRA CHEAT | V4 DEFINITIVE EDITION
     Desenvolvido para: Xeno Executor
     
-    Novidades V4 XENO-NATIVE:
-    - Interface 100% Nativa (Sem Drawing/Efeitos Pesados)
-    - Aimbot Universal (R6 e R15)
-    - ESP Highlight (Visível através de paredes)
-    - No Recoil, Speed, Fly e Click TP
+    Novidades V4 DEFINITIVE:
+    - Interface Ultra-Estável (Funciona em CoreGui ou PlayerGui)
+    - Aimbot Universal (R6 e R15) com Detecção de Ossos
+    - No Recoil (Estabilização de Câmera)
+    - ESP Billboard (Nomes e Distância Inquebráveis)
+    - Speed, Fly e Click TP
 ]]
 
 -- ================================================
@@ -46,19 +47,25 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (NATIVA E LEVE)
+-- INTERFACE GRÁFICA (ULTRA-ESTÁVEL)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Xeno_Native"
-ScreenGui.Parent = CoreGui
+ScreenGui.Name = "RAER_Definitive"
+-- Tenta colocar no CoreGui, se falhar coloca no PlayerGui
+local success, err = pcall(function()
+    ScreenGui.Parent = CoreGui
+end)
+if not success then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
 ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.Size = UDim2.new(0, 220, 0, 420)
-MainFrame.Position = UDim2.new(0.05, 0, 0.3, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.Size = UDim2.new(0, 200, 0, 420)
+MainFrame.Position = UDim2.new(0.02, 0, 0.2, 0)
 MainFrame.BorderSizePixel = 2
 MainFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
 MainFrame.Active = true
@@ -126,7 +133,7 @@ AddToggle("Team Check", "Aim_TeamCheck")
 AddToggle("Friend Check", "Aim_FriendCheck")
 AddToggle("No Recoil", "Aim_NoRecoil")
 AddSelector("Mira em", "Aim_Part", {"Head", "Torso", "Feet"})
-AddToggle("ESP Highlight", "ESP_Enabled")
+AddToggle("ESP Billboard", "ESP_Enabled")
 AddToggle("Speed Hack", "Speed_Enabled")
 AddToggle("Fly (F)", "Fly_Enabled")
 AddToggle("Click TP (Ctrl+Click)", "TP_Enabled")
@@ -232,25 +239,41 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- ESP HIGHLIGHT (NATIVO)
-RunService.RenderStepped:Connect(function()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local highlight = player.Character:FindFirstChild("RAER_ESP")
+-- ESP BILLBOARD (NATIVO E INQUEBRÁVEL)
+local function CreateESP(p)
+    if p == LocalPlayer then return end
+    local function UpdateESP()
+        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local root = p.Character.HumanoidRootPart
+            local billboard = root:FindFirstChild("RAER_ESP")
             if Settings.ESP_Enabled then
-                if not highlight then
-                    highlight = Instance.new("Highlight")
-                    highlight.Name = "RAER_ESP"
-                    highlight.Parent = player.Character
-                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                if not billboard then
+                    billboard = Instance.new("BillboardGui")
+                    billboard.Name = "RAER_ESP"
+                    billboard.Parent = root
+                    billboard.AlwaysOnTop = true
+                    billboard.Size = UDim2.new(0, 100, 0, 50)
+                    billboard.ExtentsOffset = Vector3.new(0, 3, 0)
+                    local text = Instance.new("TextLabel")
+                    text.Parent = billboard
+                    text.Size = UDim2.new(1, 0, 1, 0)
+                    text.BackgroundTransparency = 1
+                    text.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    text.Font = Enum.Font.GothamBold
+                    text.TextSize = 12
+                    text.TextStrokeTransparency = 0
                 end
+                local dist = math.floor((Camera.CFrame.Position - root.Position).Magnitude)
+                billboard.TextLabel.Text = p.Name .. "\n[" .. dist .. "m]"
             else
-                if highlight then highlight:Destroy() end
+                if billboard then billboard:Destroy() end
             end
         end
     end
-end)
+    RunService.RenderStepped:Connect(UpdateESP)
+end
+Players.PlayerAdded:Connect(CreateESP)
+for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
 
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
@@ -259,4 +282,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("[RAER ULTRA V4 XENO-NATIVE] Carregado com sucesso!")
+print("[RAER ULTRA V4 DEFINITIVE] Carregado com sucesso!")
