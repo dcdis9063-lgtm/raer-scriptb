@@ -1,10 +1,10 @@
 --[[
-    RAER ULTIMATE CHEAT | PREMIUM EDITION V3
+    RAER ULTIMATE CHEAT | PREMIUM EDITION V3 FINAL
     Inspirado no Design: SKECH (Dark/Red)
     Desenvolvido para: Xeno Executor
     
     Novidades V3:
-    - Opção de Teleport (Click TP: Ctrl + Clique Esquerdo)
+    - Opção de Teleport (Click TP: Ctrl + Clique Esquerdo) no Painel
     - Melhorias na aba Player
 ]]
 
@@ -286,7 +286,7 @@ AddToggle(PlayerPage, "Enable Speed", "Speed_Enabled")
 AddSlider(PlayerPage, "Walk Speed", "Walk_Speed", 16, 300)
 AddToggle(PlayerPage, "Enable Fly", "Fly_Enabled")
 AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
-AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled") -- NOVA OPÇÃO
+AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled") -- NOVA OPÇÃO NO PAINEL
 
 -- ================================================
 -- LÓGICA DAS FUNÇÕES (Aimbot, ESP, Speed, Fly, TP)
@@ -339,7 +339,8 @@ end)
 -- Speed Hack
 RunService.Heartbeat:Connect(function()
     if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
+        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if hum then hum.WalkSpeed = Settings.Walk_Speed end
     end
 end)
 
@@ -422,4 +423,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("[RAER ULTIMATE V3] Script carregado com sucesso!")
+print("[RAER ULTIMATE V3 FINAL] Script carregado com sucesso!")
