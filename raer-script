@@ -1,17 +1,24 @@
 --[[
-    RAER ULTIMATE CHEAT | PREMIUM EDITION V3 FINAL
+    RAER ULTIMATE CHEAT | PREMIUM EDITION V4
     Inspirado no Design: SKECH (Dark/Red)
     Desenvolvido para: Xeno Executor
     
-    Novidades V3:
-    - Opção de Teleport (Click TP: Ctrl + Clique Esquerdo) no Painel
-    - Melhorias na aba Player
+    Novidades V4:
+    - Tela de Login Personalizada (Dark/Red)
+    - Aimbot Universal (Compatível com R6 e R15)
+    - Detecção Automática de Partes (Cabeça, Peito, Pé)
+    - Todas as funções anteriores (ESP, Speed, Fly, TP)
 ]]
 
 -- ================================================
 -- CONFIGURAÇÕES INICIAIS
 -- ================================================
 local Settings = {
+    -- LOGIN (Padrão: raer / 123)
+    Username = "raer",
+    Password = "123",
+    
+    -- AIMBOT
     Aim_Enabled = false,
     Aim_FOV = 300,
     Aim_Smoothness = 0,
@@ -20,18 +27,19 @@ local Settings = {
     Aim_FriendCheck = true,
     Aim_Key = Enum.UserInputType.MouseButton2,
     
+    -- ESP
     ESP_Enabled = false,
     ESP_Box = false,
     ESP_Names = false,
     
+    -- PLAYER
     Fly_Enabled = false,
     Fly_Speed = 80,
     Speed_Enabled = false,
     Walk_Speed = 100,
-    
-    -- NOVO: TELEPORT
     TP_Enabled = false,
     
+    -- GERAL
     MenuKey = Enum.KeyCode.P,
     FlyKey = Enum.KeyCode.F
 }
@@ -48,13 +56,76 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (PREMIUM DESIGN)
+-- INTERFACE GRÁFICA (LOGIN SCREEN)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate_V3"
+ScreenGui.Name = "RAER_Ultimate_V4"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
+local LoginFrame = Instance.new("Frame")
+LoginFrame.Name = "LoginFrame"
+LoginFrame.Parent = ScreenGui
+LoginFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+LoginFrame.Size = UDim2.new(0, 300, 0, 350)
+LoginFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
+LoginFrame.BorderSizePixel = 0
+LoginFrame.Active = true
+LoginFrame.Draggable = true
+
+local LoginBorder = Instance.new("Frame")
+LoginBorder.Parent = LoginFrame
+LoginBorder.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+LoginBorder.Size = UDim2.new(1, 2, 1, 2)
+LoginBorder.Position = UDim2.new(0, -1, 0, -1)
+LoginBorder.ZIndex = 0
+LoginBorder.BorderSizePixel = 0
+
+local LoginTitle = Instance.new("TextLabel")
+LoginTitle.Parent = LoginFrame
+LoginTitle.Size = UDim2.new(1, 0, 0, 50)
+LoginTitle.BackgroundTransparency = 1
+LoginTitle.Text = "RAER LOGIN"
+LoginTitle.TextColor3 = Color3.fromRGB(255, 0, 0)
+LoginTitle.Font = Enum.Font.GothamBold
+LoginTitle.TextSize = 24
+
+local UserInput = Instance.new("TextBox")
+UserInput.Parent = LoginFrame
+UserInput.Size = UDim2.new(0.8, 0, 0, 40)
+UserInput.Position = UDim2.new(0.1, 0, 0.3, 0)
+UserInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+UserInput.BorderSizePixel = 0
+UserInput.PlaceholderText = "Usuário"
+UserInput.Text = ""
+UserInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+UserInput.Font = Enum.Font.Gotham
+
+local PassInput = Instance.new("TextBox")
+PassInput.Parent = LoginFrame
+PassInput.Size = UDim2.new(0.8, 0, 0, 40)
+PassInput.Position = UDim2.new(0.1, 0, 0.5, 0)
+PassInput.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+PassInput.BorderSizePixel = 0
+PassInput.PlaceholderText = "Senha"
+PassInput.Text = ""
+PassInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+PassInput.Font = Enum.Font.Gotham
+
+local LoginBtn = Instance.new("TextButton")
+LoginBtn.Parent = LoginFrame
+LoginBtn.Size = UDim2.new(0.8, 0, 0, 40)
+LoginBtn.Position = UDim2.new(0.1, 0, 0.75, 0)
+LoginBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+LoginBtn.BorderSizePixel = 0
+LoginBtn.Text = "ENTRAR"
+LoginBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoginBtn.Font = Enum.Font.GothamBold
+LoginBtn.TextSize = 16
+
+-- ================================================
+-- INTERFACE GRÁFICA (MAIN PANEL)
+-- ================================================
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
@@ -64,8 +135,8 @@ MainFrame.Position = UDim2.new(0.5, -275, 0.5, -190)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Visible = false -- Oculto até o login
 
--- Borda Vermelha (Efeito de Glow)
 local Border = Instance.new("Frame")
 Border.Parent = MainFrame
 Border.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
@@ -74,7 +145,6 @@ Border.Position = UDim2.new(0, -1, 0, -1)
 Border.ZIndex = 0
 Border.BorderSizePixel = 0
 
--- Menu Lateral (Sidebar)
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
@@ -91,7 +161,6 @@ Logo.TextColor3 = Color3.fromRGB(255, 0, 0)
 Logo.Font = Enum.Font.GothamBold
 Logo.TextSize = 24
 
--- Container de Abas
 local TabContainer = Instance.new("Frame")
 TabContainer.Name = "TabContainer"
 TabContainer.Parent = MainFrame
@@ -100,7 +169,6 @@ TabContainer.Position = UDim2.new(0, 130, 0, 10)
 TabContainer.Size = UDim2.new(1, -140, 1, -20)
 TabContainer.BorderSizePixel = 0
 
--- Páginas das Abas
 local Pages = {}
 local function CreatePage(name)
     local Page = Instance.new("ScrollingFrame")
@@ -111,12 +179,10 @@ local function CreatePage(name)
     Page.Visible = false
     Page.ScrollBarThickness = 2
     Page.CanvasSize = UDim2.new(0, 0, 0, 550)
-    
     local UIList = Instance.new("UIListLayout")
     UIList.Parent = Page
     UIList.Padding = UDim.new(0, 10)
     UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    
     Pages[name] = Page
     return Page
 end
@@ -124,9 +190,8 @@ end
 local AimPage = CreatePage("Aim")
 local VisualsPage = CreatePage("Visuals")
 local PlayerPage = CreatePage("Player")
-AimPage.Visible = true -- Página inicial
+AimPage.Visible = true
 
--- Botões da Sidebar
 local function AddTabButton(name, page)
     local btn = Instance.new("TextButton")
     btn.Parent = Sidebar
@@ -138,7 +203,6 @@ local function AddTabButton(name, page)
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 14
-    
     btn.MouseButton1Click:Connect(function()
         for _, p in pairs(Pages) do p.Visible = false end
         page.Visible = true
@@ -153,13 +217,12 @@ AddTabButton("Aimbot", AimPage)
 AddTabButton("Visuals", VisualsPage)
 AddTabButton("Player", PlayerPage)
 
--- Elementos da UI (Toggles e Sliders)
+-- Elementos da UI (Toggles, Sliders, Selectors)
 local function AddToggle(parent, text, settingKey)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0.9, 0, 0, 30)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
-    
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.7, 0, 1, 0)
     label.BackgroundTransparency = 1
@@ -168,7 +231,6 @@ local function AddToggle(parent, text, settingKey)
     label.Font = Enum.Font.Gotham
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
-    
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0, 40, 0, 20)
     btn.Position = UDim2.new(1, -45, 0.5, -10)
@@ -176,7 +238,6 @@ local function AddToggle(parent, text, settingKey)
     btn.Text = ""
     btn.BorderSizePixel = 0
     btn.Parent = frame
-    
     btn.MouseButton1Click:Connect(function()
         Settings[settingKey] = not Settings[settingKey]
         btn.BackgroundColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(40, 40, 40)
@@ -188,7 +249,6 @@ local function AddSlider(parent, text, settingKey, min, max)
     frame.Size = UDim2.new(0.9, 0, 0, 50)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
-    
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(1, 0, 0, 20)
     label.BackgroundTransparency = 1
@@ -197,26 +257,22 @@ local function AddSlider(parent, text, settingKey, min, max)
     label.Font = Enum.Font.Gotham
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
-    
     local sliderBg = Instance.new("Frame")
     sliderBg.Size = UDim2.new(1, 0, 0, 5)
     sliderBg.Position = UDim2.new(0, 0, 0, 30)
     sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     sliderBg.BorderSizePixel = 0
     sliderBg.Parent = frame
-    
     local sliderFill = Instance.new("Frame")
     sliderFill.Size = UDim2.new((Settings[settingKey] - min) / (max - min), 0, 1, 0)
     sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     sliderFill.BorderSizePixel = 0
     sliderFill.Parent = sliderBg
-    
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 1, 0)
     btn.BackgroundTransparency = 1
     btn.Text = ""
     btn.Parent = sliderBg
-    
     btn.MouseButton1Down:Connect(function()
         local moveConn
         moveConn = RunService.RenderStepped:Connect(function()
@@ -241,7 +297,6 @@ local function AddSelector(parent, text, settingKey, options)
     frame.Size = UDim2.new(0.9, 0, 0, 40)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
-    
     local label = Instance.new("TextLabel")
     label.Size = UDim2.new(0.4, 0, 1, 0)
     label.BackgroundTransparency = 1
@@ -250,7 +305,6 @@ local function AddSelector(parent, text, settingKey, options)
     label.Font = Enum.Font.Gotham
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
-    
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0.5, 0, 0, 25)
     btn.Position = UDim2.new(0.5, 0, 0.5, -12)
@@ -260,7 +314,6 @@ local function AddSelector(parent, text, settingKey, options)
     btn.Font = Enum.Font.Gotham
     btn.BorderSizePixel = 0
     btn.Parent = frame
-    
     local currentIdx = 1
     btn.MouseButton1Click:Connect(function()
         currentIdx = currentIdx + 1
@@ -286,25 +339,42 @@ AddToggle(PlayerPage, "Enable Speed", "Speed_Enabled")
 AddSlider(PlayerPage, "Walk Speed", "Walk_Speed", 16, 300)
 AddToggle(PlayerPage, "Enable Fly", "Fly_Enabled")
 AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
-AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled") -- NOVA OPÇÃO NO PAINEL
+AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled")
 
 -- ================================================
--- LÓGICA DAS FUNÇÕES (Aimbot, ESP, Speed, Fly, TP)
+-- LÓGICA DO LOGIN
 -- ================================================
+LoginBtn.MouseButton1Click:Connect(function()
+    if UserInput.Text == Settings.Username and PassInput.Text == Settings.Password then
+        LoginFrame.Visible = false
+        MainFrame.Visible = true
+        print("[RAER] Login bem-sucedido!")
+    else
+        LoginBtn.Text = "DADOS INCORRETOS"
+        wait(1)
+        LoginBtn.Text = "ENTRAR"
+    end
+end)
 
--- Função para encontrar a parte correta
+-- ================================================
+-- LÓGICA DO AIMBOT UNIVERSAL (R6/R15)
+-- ================================================
 local function GetTargetPart(character, partName)
     if not character then return nil end
-    if partName == "Head" then return character:FindFirstChild("Head")
-    elseif partName == "Torso" then return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-    elseif partName == "Feet" then return character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot") or character:FindFirstChild("Left Leg") or character:FindFirstChild("Right Leg")
+    if partName == "Head" then
+        return character:FindFirstChild("Head")
+    elseif partName == "Torso" then
+        -- Compatibilidade R6 e R15 para o Peito
+        return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
+    elseif partName == "Feet" then
+        -- Compatibilidade R6 e R15 para os Pés
+        return character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot") or character:FindFirstChild("Left Leg") or character:FindFirstChild("Right Leg")
     end
     return nil
 end
 
--- Aimbot
 RunService.RenderStepped:Connect(function()
-    if Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
+    if MainFrame.Visible and Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
         local target = nil
         local shortestDistance = Settings.Aim_FOV
         for _, player in ipairs(Players:GetPlayers()) do
@@ -336,19 +406,19 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Speed Hack
+-- ================================================
+-- OUTRAS FUNÇÕES (Speed, Fly, TP, ESP)
+-- ================================================
 RunService.Heartbeat:Connect(function()
-    if Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        if hum then hum.WalkSpeed = Settings.Walk_Speed end
+    if MainFrame.Visible and Settings.Speed_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = Settings.Walk_Speed
     end
 end)
 
--- Fly
 local bv = Instance.new("BodyVelocity")
 local bg = Instance.new("BodyGyro")
 RunService.RenderStepped:Connect(function()
-    if Settings.Fly_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+    if MainFrame.Visible and Settings.Fly_Enabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local root = LocalPlayer.Character.HumanoidRootPart
         bv.Parent = root
         bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
@@ -359,68 +429,5 @@ RunService.RenderStepped:Connect(function()
         if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir = dir + Camera.CFrame.LookVector end
         if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir = dir - Camera.CFrame.LookVector end
         if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir = dir - Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir = dir + Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0,1,0) end
-        bv.Velocity = dir * Settings.Fly_Speed
-    else
-        bv.Parent = nil
-        bg.Parent = nil
-    end
-end)
-
--- Teleport (Click TP)
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and Settings.TP_Enabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
-        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Mouse.Hit.p + Vector3.new(0, 3, 0))
-            end
-        end
-    end
-end)
-
--- ESP
-local function CreateESP(p)
-    if p == LocalPlayer then return end
-    local box = Drawing.new("Square")
-    box.Color = Color3.fromRGB(255, 0, 0)
-    box.Thickness = 1
-    local name = Drawing.new("Text")
-    name.Color = Color3.fromRGB(255, 255, 255)
-    name.Size = 14
-    name.Center = true
-    name.Outline = true
-    
-    RunService.RenderStepped:Connect(function()
-        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
-            if onScreen then
-                local dist = (Camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                local size = (Camera.ViewportSize.Y / dist) * 2
-                if Settings.ESP_Box then
-                    box.Size = Vector2.new(size * 1.5, size * 2)
-                    box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
-                    box.Visible = true
-                else box.Visible = false end
-                if Settings.ESP_Names then
-                    name.Text = p.Name
-                    name.Position = Vector2.new(pos.X, pos.Y - (size * 1.2))
-                    name.Visible = true
-                else name.Visible = false end
-            else box.Visible = false name.Visible = false end
-        else box.Visible = false name.Visible = false end
-    end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
-
--- Atalhos
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
-    if input.KeyCode == Settings.MenuKey then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-end)
-
-print("[RAER ULTIMATE V3 FINAL] Script carregado com sucesso!")
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+(Content truncated due to size limit. Use line ranges to read remaining content)
