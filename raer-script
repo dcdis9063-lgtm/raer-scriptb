@@ -1,12 +1,11 @@
 --[[
-    RAER ULTRA CHEAT V4 | XENO COMPATIBLE EDITION
-    Versão: Corrigida e Otimizada para Xeno
+    RAER ULTRA CHEAT V4 | ULTRA-LITE EDITION
+    Versão: SUPER COMPATÍVEL (Xeno)
     
     Funções:
     - Aimbot Lock-On (Botão Direito)
-    - Seletor de Parte (Cabeça/Peito/Pé)
-    - Speed Hack & Fly
-    - ESP Box & Names
+    - Speed Hack (Tecla V)
+    - Fly (Tecla F)
     - Teleport (Ctrl + Click)
 ]]
 
@@ -16,46 +15,30 @@
 local Settings = {
     Aim_Enabled = true,
     Aim_FOV = 300,
-    Aim_Part = "Head",
-    Aim_TeamCheck = false,
-    Aim_FriendCheck = true,
+    Aim_Part = "Head", -- "Head", "HumanoidRootPart", "LeftFoot"
     Aim_Key = Enum.UserInputType.MouseButton2,
-    
-    ESP_Enabled = true,
-    ESP_Box = true,
-    ESP_Names = true,
     
     Fly_Enabled = false,
     Fly_Speed = 80,
+    
     Speed_Enabled = false,
     Walk_Speed = 100,
+    
     TP_Enabled = true,
     
-    MenuKey = Enum.KeyCode.P,
-    FlyKey = Enum.KeyCode.F
+    FlyKey = Enum.KeyCode.F,
+    SpeedKey = Enum.KeyCode.V
 }
 
 -- ================================================
--- VARIÁVEIS DE SISTEMA (Protegidas)
+-- VARIÁVEIS DE SISTEMA
 -- ================================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-
--- FOV Circle (Usando pcall para evitar erro se o executor não suportar Drawing)
-local FOV_Circle = nil
-pcall(function()
-    FOV_Circle = Drawing.new("Circle")
-    FOV_Circle.Thickness = 2
-    FOV_Circle.Color = Color3.fromRGB(255, 0, 0)
-    FOV_Circle.Filled = false
-    FOV_Circle.Transparency = 1
-    FOV_Circle.Visible = false
-end)
 
 -- ================================================
 -- LÓGICA DO AIMBOT (LOCK-ON)
@@ -65,8 +48,6 @@ local function GetClosestPlayer()
     local shortestDistance = Settings.Aim_FOV
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(Settings.Aim_Part) then
-            if Settings.Aim_TeamCheck and player.Team == LocalPlayer.Team then continue end
-            if Settings.Aim_FriendCheck and LocalPlayer:IsFriendsWith(player.UserId) then continue end
             local hum = player.Character:FindFirstChildOfClass("Humanoid")
             if not hum or hum.Health <= 0 then continue end
             
@@ -86,20 +67,11 @@ local function GetClosestPlayer()
 end
 
 RunService.RenderStepped:Connect(function()
-    if Settings.Aim_Enabled then
-        if FOV_Circle then
-            FOV_Circle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
-            FOV_Circle.Radius = Settings.Aim_FOV
-            FOV_Circle.Visible = true
+    if Settings.Aim_Enabled and UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
+        local target = GetClosestPlayer()
+        if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character[Settings.Aim_Part].Position)
         end
-        if UserInputService:IsMouseButtonPressed(Settings.Aim_Key) then
-            local target = GetClosestPlayer()
-            if target and target.Character and target.Character:FindFirstChild(Settings.Aim_Part) then
-                Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character[Settings.Aim_Part].Position)
-            end
-        end
-    elseif FOV_Circle then
-        FOV_Circle.Visible = false
     end
 end)
 
@@ -149,125 +121,18 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ================================================
--- INTERFACE GRÁFICA (PAINEL RAER V4 CORRIGIDO)
+-- ATALHOS DE TECLADO
 -- ================================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Xeno"
-ScreenGui.Parent = CoreGui
-ScreenGui.ResetOnSpawn = false
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Size = UDim2.new(0, 200, 0, 400)
-MainFrame.Position = UDim2.new(0.05, 0, 0.2, 0)
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.BorderSizePixel = 0
-
-local Title = Instance.new("TextLabel")
-Title.Parent = MainFrame
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-Title.Text = "RAER V4 FIXED"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
-
-local Container = Instance.new("ScrollingFrame")
-Container.Parent = MainFrame
-Container.Position = UDim2.new(0, 5, 0, 40)
-Container.Size = UDim2.new(1, -10, 1, -45)
-Container.BackgroundTransparency = 1
-Container.CanvasSize = UDim2.new(0, 0, 0, 550)
-Container.ScrollBarThickness = 2
-
-local UIList = Instance.new("UIListLayout")
-UIList.Parent = Container
-UIList.Padding = UDim.new(0, 5)
-
-local function AddToggle(text, key)
-    local btn = Instance.new("TextButton")
-    btn.Parent = Container
-    btn.Size = UDim2.new(1, 0, 0, 25)
-    btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.Gotham
-    btn.BorderSizePixel = 0
-    btn.MouseButton1Click:Connect(function()
-        Settings[key] = not Settings[key]
-        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(200, 0, 0) or Color3.fromRGB(40, 40, 40)
-    end)
-end
-
-AddToggle("Aimbot Master", "Aim_Enabled")
-AddToggle("Ignorar Amigos", "Aim_FriendCheck")
-AddToggle("ESP Master", "ESP_Enabled")
-AddToggle("Fly (F)", "Fly_Enabled")
-AddToggle("Speed Hack", "Speed_Enabled")
-
-local PartLabel = Instance.new("TextLabel")
-PartLabel.Parent = Container
-PartLabel.Size = UDim2.new(1, 0, 0, 20)
-PartLabel.BackgroundTransparency = 1
-PartLabel.Text = "Mirar em: " .. Settings.Aim_Part
-PartLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-PartLabel.Font = Enum.Font.Gotham
-
-local function AddPartBtn(text, part)
-    local btn = Instance.new("TextButton")
-    btn.Parent = Container
-    btn.Size = UDim2.new(1, 0, 0, 25)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.Gotham
-    btn.MouseButton1Click:Connect(function()
-        Settings.Aim_Part = part
-        PartLabel.Text = "Mirar em: " .. part
-    end)
-end
-
-AddPartBtn("MIRA: CABEÇA", "Head")
-AddPartBtn("MIRA: PEITO", "HumanoidRootPart")
-AddPartBtn("MIRA: PÉ", "LeftFoot")
-
--- Atalhos
 UserInputService.InputBegan:Connect(function(input, processed)
     if processed then return end
-    if input.KeyCode == Settings.MenuKey then
-        MainFrame.Visible = not MainFrame.Visible
-    elseif input.KeyCode == Settings.FlyKey then
+    if input.KeyCode == Settings.FlyKey then
         Settings.Fly_Enabled = not Settings.Fly_Enabled
+        print("[RAER] Fly: " .. (Settings.Fly_Enabled and "ON" or "OFF"))
+    elseif input.KeyCode == Settings.SpeedKey then
+        Settings.Speed_Enabled = not Settings.Speed_Enabled
+        print("[RAER] Speed: " .. (Settings.Speed_Enabled and "ON" or "OFF"))
     end
 end)
 
--- ESP OTIMIZADO (Protegido)
-local function CreateESP(p)
-    if p == LocalPlayer then return end
-    local box = nil
-    pcall(function() box = Drawing.new("Square") box.Color = Color3.fromRGB(255, 0, 0) box.Thickness = 1 end)
-    
-    RunService.RenderStepped:Connect(function()
-        if Settings.ESP_Enabled and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local pos, onScreen = Camera:WorldToViewportPoint(p.Character.HumanoidRootPart.Position)
-            if onScreen and box then
-                local dist = (Camera.CFrame.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                local size = (Camera.ViewportSize.Y / dist) * 2
-                if Settings.ESP_Box then
-                    box.Size = Vector2.new(size * 1.5, size * 2)
-                    box.Position = Vector2.new(pos.X - (box.Size.X / 2), pos.Y - (box.Size.Y / 2))
-                    box.Visible = true
-                else box.Visible = false end
-            elseif box then box.Visible = false end
-        elseif box then box.Visible = false end
-    end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
-
--- Limpar logs finais
-print = function() end
-warn = function() end
-error = function() end
+print("[RAER V4 ULTRA-LITE] Script carregado com sucesso!")
+print("Aimbot: Botão Direito | Fly: F | Speed: V | Teleport: Ctrl + Click")
