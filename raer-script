@@ -1,13 +1,12 @@
 --[[
-    RAER ULTIMATE CHEAT | V4 UNIVERSAL AIM EDITION
+    RAER ULTIMATE CHEAT | V4 NO LOGIN EDITION (ORIGINAL RESTORED)
     Inspirado no Design: SKECH (Dark/Red)
     Desenvolvido para: Xeno Executor
     
-    Novidades V4 UNIVERSAL AIM:
-    - Aimbot 100% Compatível com R6 e R15 (e variações)
-    - Detecção Inteligente de Partes (Cabeça, Peito, Pé)
+    Novidades V4 NO LOGIN:
     - Removida Tela de Login (Carregamento Instantâneo)
-    - Todas as funções anteriores (ESP, Speed, Fly, TP)
+    - Aimbot com trava na Cabeça, Peito ou Pé
+    - Todas as funções originais (ESP, Speed, Fly, TP)
 ]]
 
 -- ================================================
@@ -55,7 +54,7 @@ local Mouse = LocalPlayer:GetMouse()
 -- INTERFACE GRÁFICA (MAIN PANEL PREMIUM)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate_V4_Universal"
+ScreenGui.Name = "RAER_Ultimate_V4_Original"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -274,17 +273,15 @@ AddSlider(PlayerPage, "Fly Speed", "Fly_Speed", 50, 500)
 AddToggle(PlayerPage, "Click TP (Ctrl+Click)", "TP_Enabled")
 
 -- ================================================
--- LÓGICA DO AIMBOT UNIVERSAL (R6/R15)
+-- LÓGICA DO AIMBOT
 -- ================================================
 local function GetTargetPart(character, partName)
     if not character then return nil end
     if partName == "Head" then
         return character:FindFirstChild("Head")
     elseif partName == "Torso" then
-        -- Compatibilidade Universal para o Peito
         return character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
     elseif partName == "Feet" then
-        -- Compatibilidade Universal para os Pés
         return character:FindFirstChild("LeftFoot") or character:FindFirstChild("RightFoot") or character:FindFirstChild("Left Leg") or character:FindFirstChild("Right Leg")
     end
     return nil
@@ -406,4 +403,4 @@ UserInputService.InputBegan:Connect(function(input, processed)
     end
 end)
 
-print("[RAER ULTIMATE V4 UNIVERSAL AIM] Carregado com sucesso!"
+print("[RAER ULTIMATE V4 ORIGINAL RESTORED] Carregado com sucesso!")
