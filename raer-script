@@ -1,9 +1,10 @@
 --[[
-    RAER ULTIMATE CHEAT | V4 NO LOGIN EDITION
+    RAER ULTIMATE CHEAT | V4 NO RECOIL EDITION
     Inspirado no Design: SKECH (Dark/Red)
     Desenvolvido para: Xeno Executor
     
-    Novidades V4 NO LOGIN:
+    Novidades V4 NO RECOIL:
+    - Adicionada Função No Recoil (Sem Recuo)
     - Removida Tela de Login (Carregamento Instantâneo)
     - Aimbot Universal (Compatível com R6 e R15)
     - Detecção Automática de Partes (Cabeça, Peito, Pé)
@@ -21,6 +22,7 @@ local Settings = {
     Aim_Part = "Head",
     Aim_TeamCheck = true,
     Aim_FriendCheck = true,
+    Aim_NoRecoil = false, -- Nova Função
     Aim_Key = Enum.UserInputType.MouseButton2,
     
     -- ESP
@@ -55,7 +57,7 @@ local Mouse = LocalPlayer:GetMouse()
 -- INTERFACE GRÁFICA (MAIN PANEL PREMIUM)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_Ultimate_V4_NoLogin"
+ScreenGui.Name = "RAER_Ultimate_V4_NoRecoil"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
@@ -259,6 +261,7 @@ end
 AddToggle(AimPage, "Enable Aimbot", "Aim_Enabled")
 AddToggle(AimPage, "Team Check", "Aim_TeamCheck")
 AddToggle(AimPage, "Friend Check", "Aim_FriendCheck")
+AddToggle(AimPage, "No Recoil", "Aim_NoRecoil") -- Nova Opção
 AddSlider(AimPage, "Field of View", "Aim_FOV", 50, 800)
 AddSlider(AimPage, "Smoothness", "Aim_Smoothness", 0, 10)
 AddSelector(AimPage, "Hitbox", "Aim_Part", {"Head", "Torso", "Feet"})
@@ -319,6 +322,22 @@ RunService.RenderStepped:Connect(function()
             end
         end
     end
+end)
+
+-- ================================================
+-- LÓGICA DO NO RECOIL
+-- ================================================
+local OldCFrame = Camera.CFrame
+RunService.RenderStepped:Connect(function()
+    if Settings.Aim_NoRecoil then
+        -- Tenta anular o recuo da câmera forçando a posição anterior se houver mudança brusca
+        local currentCFrame = Camera.CFrame
+        if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+            -- Se estiver atirando, tenta estabilizar a câmera
+            Camera.CFrame = OldCFrame:Lerp(currentCFrame, 0.1)
+        end
+    end
+    OldCFrame = Camera.CFrame
 end)
 
 -- ================================================
@@ -388,20 +407,5 @@ local function CreateESP(p)
                 if Settings.ESP_Names then
                     name.Text = p.Name
                     name.Position = Vector2.new(pos.X, pos.Y - (size * 1.2))
-                    name.Visible = true
-                else name.Visible = false end
-            else box.Visible = false name.Visible = false end
-        else box.Visible = false name.Visible = false end
-    end)
-end
-Players.PlayerAdded:Connect(CreateESP)
-for _, p in ipairs(Players:GetPlayers()) do CreateESP(p) end
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if processed then return end
-    if input.KeyCode == Settings.MenuKey then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-end)
-
-print("[RAER ULTIMATE V4 NO LOGIN] Carregado com sucesso!")
+            
+(Content truncated due to size limit. Use line ranges to read remaining content)
