@@ -1,26 +1,25 @@
 --[[
-    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim Safe Mode)
+    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim Ultra-Compatible)
     Design: SKECH V2 (Dark/Red) - Premium
     Compatibilidade: Xeno Executor (R6 & R15)
     
-    Este script foi reescrito para máxima compatibilidade e estabilidade.
-    Foca na funcionalidade essencial do Silent Aim e na interface do usuário.
+    Esta versão é otimizada para máxima compatibilidade com executores como o Xeno.
+    A interface gráfica foi removida para evitar conflitos com o CoreGui e Drawing.new.
+    O Silent Aim é ativado/desativado por uma tecla e as configurações são pré-definidas.
 ]]
 
 -- ================================================
--- VARIÁVEIS GLOBAIS
+-- VARIÁVEIS GLOBAIS (CONFIGURAÇÕES BÁSICAS)
 -- ================================================
 getgenv().RAER_Settings = {
     Silent_Enabled = false,
-    Silent_ShowFOV = false,
+    Silent_Key = Enum.UserInputType.MouseButton2, -- Botão Direito do Mouse
     Silent_FOV = 20,
-    Silent_HitChance = 100, -- 0x na imagem, mas 100% é mais lógico para chance de acerto
+    Silent_HitChance = 100, -- 100% de chance de acerto
     Silent_MaxDist = 203,
-    Silent_MagicBullets = false,
     Silent_VisibleOnly = false,
     Silent_IgnoreNPCs = false,
-    Silent_Key = Enum.UserInputType.MouseButton2, -- Right Mouse Button
-    MenuKey = Enum.KeyCode.P
+    MenuKey = Enum.KeyCode.P -- Tecla para alternar o Silent Aim (sem GUI)
 }
 
 local Settings = getgenv().RAER_Settings
@@ -31,323 +30,14 @@ local Settings = getgenv().RAER_Settings
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (PREMIUM GUI V5 - SIMPLIFICADA)
--- ================================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_V5_Definitive_SafeMode"
-ScreenGui.Parent = CoreGui or LocalPlayer:WaitForChild("PlayerGui")
-ScreenGui.ResetOnSpawn = false
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-MainFrame.Size = UDim2.new(0, 650, 0, 450)
-MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Visible = false -- Começa invisível
-
--- Borda Vermelha Lateral
-local AccentLine = Instance.new("Frame")
-AccentLine.Parent = MainFrame
-AccentLine.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-AccentLine.Size = UDim2.new(0, 2, 1, 0)
-AccentLine.Position = UDim2.new(0, 140, 0, 0)
-AccentLine.BorderSizePixel = 0
-
--- Sidebar
-local Sidebar = Instance.new("Frame")
-Sidebar.Name = "Sidebar"
-Sidebar.Parent = MainFrame
-Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-Sidebar.Size = UDim2.new(0, 140, 1, 0)
-Sidebar.BorderSizePixel = 0
-
-local Logo = Instance.new("TextLabel")
-Logo.Parent = Sidebar
-Logo.Size = UDim2.new(1, 0, 0, 60)
-Logo.BackgroundTransparency = 1
-Logo.Text = "RAER"
-Logo.TextColor3 = Color3.fromRGB(255, 0, 0)
-Logo.Font = Enum.Font.GothamBold
-Logo.TextSize = 28
-
--- Container de Abas
-local TabContainer = Instance.new("Frame")
-TabContainer.Name = "TabContainer"
-TabContainer.Parent = MainFrame
-TabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-TabContainer.Position = UDim2.new(0, 150, 0, 10)
-TabContainer.Size = UDim2.new(1, -160, 1, -20)
-TabContainer.BackgroundTransparency = 1
-
-local Pages = {}
-local ActivePage = nil
-
-local function CreatePage(name)
-    local Page = Instance.new("ScrollingFrame")
-    Page.Name = name .. "Page"
-    Page.Parent = TabContainer
-    Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.BackgroundTransparency = 1
-    Page.Visible = false
-    Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 0) -- Ajusta dinamicamente
-    local UIList = Instance.new("UIListLayout")
-    UIList.Parent = Page
-    UIList.Padding = UDim.new(0, 15)
-    UIList.SortOrder = Enum.SortOrder.LayoutOrder
-    UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    Pages[name] = Page
-    return Page
-end
-
--- Criar Abas (apenas Silent Aim para simplificar)
-local SilentPage = CreatePage("Silent Aim")
-
--- Definir página inicial
-ActivePage = SilentPage
-ActivePage.Visible = true
-
--- Botões da Sidebar (apenas Silent Aim para simplificar)
-local TabButtons = {}
-local function AddTabButton(name, page, yPos)
-    local btn = Instance.new("TextButton")
-    btn.Parent = Sidebar
-    btn.Size = UDim2.new(1, -10, 0, 30)
-    btn.Position = UDim2.new(0, 5, 0, yPos)
-    btn.BackgroundTransparency = 1
-    btn.BorderSizePixel = 0
-    btn.Text = "  " .. name
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 14
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    
-    btn.MouseButton1Click:Connect(function()
-        if ActivePage ~= page then
-            ActivePage.Visible = false
-            page.Visible = true
-            ActivePage = page
-            for _, b in pairs(TabButtons) do
-                b.TextColor3 = Color3.fromRGB(200, 200, 200)
-            end
-            btn.TextColor3 = Color3.fromRGB(255, 0, 0)
-        end
-    end)
-    table.insert(TabButtons, btn)
-end
-
-AddTabButton("Silent Aim", SilentPage, 95)
-
--- Marcar botão inicial como ativo
-TabButtons[1].TextColor3 = Color3.fromRGB(255, 0, 0)
-
--- ================================================
--- FUNÇÕES DE CRIAÇÃO DE UI
--- ================================================
-local function CreateSection(parent, title, layoutOrder)
-    local section = Instance.new("Frame")
-    section.Name = title
-    section.Parent = parent
-    section.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    section.BorderSizePixel = 1
-    section.BorderColor3 = Color3.fromRGB(40, 40, 40)
-    section.Size = UDim2.new(0.95, 0, 0, 100) -- Tamanho inicial, será ajustado pelo UIListLayout
-    section.LayoutOrder = layoutOrder
-
-    local UIList = Instance.new("UIListLayout")
-    UIList.Parent = section
-    UIList.Padding = UDim.new(0, 5)
-    UIList.SortOrder = Enum.SortOrder.LayoutOrder
-    UIList.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    
-    local label = Instance.new("TextLabel")
-    label.Parent = section
-    label.Size = UDim2.new(1, -20, 0, 25)
-    label.Position = UDim2.new(0, 10, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = title
-    label.TextColor3 = Color3.fromRGB(150, 150, 150)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.LayoutOrder = 0
-    
-    return section
-end
-
-local function AddCheckbox(parent, text, settingKey, layoutOrder)
-    local container = Instance.new("Frame")
-    container.Parent = parent
-    container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, 0, 0, 25)
-    container.LayoutOrder = layoutOrder
-
-    local btn = Instance.new("TextButton")
-    btn.Parent = container
-    btn.Size = UDim2.new(1, -20, 1, 0)
-    btn.Position = UDim2.new(0, 10, 0, 0)
-    btn.BackgroundTransparency = 1
-    btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
-    btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.Gotham
-    btn.TextSize = 13
-    btn.TextXAlignment = Enum.TextXAlignment.Left
-    
-    btn.MouseButton1Click:Connect(function()
-        Settings[settingKey] = not Settings[settingKey]
-        btn.Text = (Settings[settingKey] and "✓ " or "  ") .. text
-        btn.TextColor3 = Settings[settingKey] and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(200, 200, 200)
-    end)
-end
-
-local function AddSlider(parent, text, settingKey, min, max, layoutOrder, suffix)
-    local container = Instance.new("Frame")
-    container.Parent = parent
-    container.BackgroundTransparency = 1
-    container.Size = UDim2.new(1, 0, 0, 50)
-    container.LayoutOrder = layoutOrder
-
-    local label = Instance.new("TextLabel")
-    label.Parent = container
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, 5)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.fromRGB(200, 200, 200)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-
-    local sliderBg = Instance.new("Frame")
-    sliderBg.Parent = container
-    sliderBg.Size = UDim2.new(0.9, 0, 0, 4)
-    sliderBg.Position = UDim2.new(0.05, 0, 0, 28)
-    sliderBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    sliderBg.BorderSizePixel = 0
-
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Parent = sliderBg
-    sliderFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    sliderFill.BorderSizePixel = 0
-
-    local function UpdateSlider(value)
-        local percentage = (value - min) / (max - min)
-        sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-        label.Text = text .. "  " .. value .. (suffix or "")
-    end
-
-    UpdateSlider(Settings[settingKey])
-
-    local dragBtn = Instance.new("TextButton")
-    dragBtn.Parent = sliderBg
-    dragBtn.Size = UDim2.new(1, 0, 1, 0)
-    dragBtn.BackgroundTransparency = 1
-    dragBtn.Text = ""
-
-    dragBtn.MouseButton1Down:Connect(function()
-        local moveConn, endConn
-        moveConn = RunService.RenderStepped:Connect(function()
-            local mouseX = UserInputService:GetMouseLocation().X
-            local relativeX = mouseX - sliderBg.AbsolutePosition.X
-            local percentage = math.clamp(relativeX / sliderBg.AbsoluteSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * percentage + 0.5)
-            Settings[settingKey] = value
-            UpdateSlider(value)
-        end)
-        endConn = UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                moveConn:Disconnect()
-                endConn:Disconnect()
-            end
-        end)
-    end)
-end
-
--- ================================================
--- CONTEÚDO DA ABA SILENT AIM
--- ================================================
-local SilentOverride = CreateSection(SilentPage, "Override config", 1)
-local SilentKeyLabel = Instance.new("TextLabel")
-SilentKeyLabel.Parent = SilentOverride
-SilentKeyLabel.Size = UDim2.new(1, -20, 0, 50)
-SilentKeyLabel.BackgroundTransparency = 1
-SilentKeyLabel.Text = "Tecla de Mira Silenciosa\nRight Mouse Button - Silent"
-SilentKeyLabel.RichText = true
-SilentKeyLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-SilentKeyLabel.Font = Enum.Font.Gotham
-SilentKeyLabel.TextSize = 12
-SilentKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
-SilentKeyLabel.LayoutOrder = 1
-
-local SilentGeneral = CreateSection(SilentPage, "Geral", 2)
-AddCheckbox(SilentGeneral, "Ativar", "Silent_Enabled", 1)
-AddCheckbox(SilentGeneral, "Mostrar Campo de Visao", "Silent_ShowFOV", 2)
-
-local SilentPrecision = CreateSection(SilentPage, "Precisao", 3)
-AddSlider(SilentPrecision, "Campo de Visao", "Silent_FOV", 0, 360, 1)
-AddSlider(SilentPrecision, "Chance de Erro", "Silent_HitChance", 0, 100, 2, "x")
-AddSlider(SilentPrecision, "Distancia Maxima", "Silent_MaxDist", 0, 1000, 3, "m")
-
-local SilentMisc = CreateSection(SilentPage, "Diversos", 4)
-AddCheckbox(SilentMisc, "Balas Magicas", "Silent_MagicBullets", 1)
-AddCheckbox(SilentMisc, "Apenas Visiveis", "Silent_VisibleOnly", 2)
-AddCheckbox(SilentMisc, "Ignorar NPCs", "Silent_IgnoreNPCs", 3)
-
--- ================================================
--- LÓGICA DO CHEAT
+-- LÓGICA DO SILENT AIM
 -- ================================================
 
--- Lógica de desenho do FOV (apenas para Silent Aim)
-local SilentFOVCircle = nil
--- Tenta criar o Drawing.new, mas não é essencial para a execução do script
-pcall(function()
-    SilentFOVCircle = Drawing.new("Circle")
-    SilentFOVCircle.Thickness = 1
-    SilentFOVCircle.Color = Color3.fromRGB(255, 0, 0)
-    SilentFOVCircle.Filled = false
-    SilentFOVCircle.Transparency = 0.5
-    SilentFOVCircle.Visible = false
-end)
-
-RunService.RenderStepped:Connect(function()
-    -- Atualiza visibilidade do FOV apenas se o Drawing.new foi criado com sucesso
-    if SilentFOVCircle then
-        if Settings.Silent_ShowFOV and MainFrame.Visible and ActivePage == SilentPage then
-            SilentFOVCircle.Visible = true
-            SilentFOVCircle.Radius = Settings.Silent_FOV
-            local mousePos = UserInputService:GetMouseLocation()
-            SilentFOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y)
-        else
-            SilentFOVCircle.Visible = false
-        end
-    end
-
-    -- Lógica Silent Aim
-    if Settings.Silent_Enabled and UserInputService:IsMouseButtonPressed(Settings.Silent_Key) then
-        local target = GetClosestPlayer(Settings.Silent_FOV, Settings.Silent_MaxDist, Settings.Silent_VisibleOnly, Settings.Silent_IgnoreNPCs)
-        if target then
-            -- Implementação básica de Silent Aim: Redireciona o mouse para o alvo
-            -- Nota: Silent Aim real geralmente envolve manipulação de raycast ou CFrame do projétil.
-            -- Esta é uma simulação que pode funcionar em alguns contextos.
-            local pos, onScreen = Camera:WorldToViewportPoint(target.Position)
-            if onScreen then
-                Mouse.X = pos.X
-                Mouse.Y = pos.Y
-            end
-        end
-    end
-end)
-
--- Função auxiliar para encontrar o jogador mais próximo (reutilizada do script anterior)
 local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNPCs)
     local target = nil
     local shortestDistance = fov
@@ -374,9 +64,31 @@ local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNPCs)
     return target
 end
 
--- Lógica para abrir/fechar o menu
-UserInputService.InputBegan:Connect(function(input, processed)
-    if input.KeyCode == Settings.MenuKey then MainFrame.Visible = not MainFrame.Visible end
+RunService.RenderStepped:Connect(function()
+    if Settings.Silent_Enabled and UserInputService:IsMouseButtonPressed(Settings.Silent_Key) then
+        if math.random(1, 100) <= Settings.Silent_HitChance then
+            local target = GetClosestPlayer(Settings.Silent_FOV, Settings.Silent_MaxDist, Settings.Silent_VisibleOnly, Settings.Silent_IgnoreNPCs)
+            if target then
+                -- Implementação básica de Silent Aim: Redireciona o mouse para o alvo
+                -- Esta é uma simulação que pode funcionar em alguns contextos.
+                local pos, onScreen = Camera:WorldToViewportPoint(target.Position)
+                if onScreen then
+                    Mouse.X = pos.X
+                    Mouse.Y = pos.Y
+                end
+            end
+        end
+    end
 end)
 
-print("[RAER V5 SILENT SAFE MODE] Carregado com sucesso!")
+-- Lógica para alternar o Silent Aim com a tecla MenuKey (sem GUI)
+UserInputService.InputBegan:Connect(function(input, processed)
+    if input.KeyCode == Settings.MenuKey and not processed then
+        Settings.Silent_Enabled = not Settings.Silent_Enabled
+        print("[RAER V5 SILENT ULTRA-COMPATIBLE] Silent Aim: " .. tostring(Settings.Silent_Enabled))
+    end
+end)
+
+print("[RAER V5 SILENT ULTRA-COMPATIBLE] Carregado com sucesso! Pressione 'P' para alternar o Silent Aim.")
+
+
