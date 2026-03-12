@@ -1,55 +1,38 @@
 --[[
-    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Full GUI with Config Tab)
+    RAER ULTIMATE CHEAT | V5 DEFINITIVE FIX (Silent Aim & Trigger Bot Exact Match)
     Design: SKECH V2 (Dark/Red) - Premium
     Compatibilidade: Xeno Executor (R6 & R15)
     
-    Este script implementa uma interface gráfica completa com foco na aba de Configurações.
-    A estrutura da GUI foi otimizada para maior compatibilidade e funcionalidade.
+    Este script recria os painéis 'Silent Aim' e 'Trigger Bot' exatamente como nas imagens.
 ]]
 
 -- ================================================
 -- VARIÁVEIS GLOBAIS (CONFIGURAÇÕES PADRÃO)
 -- ================================================
 getgenv().RAER_Settings = {
-    -- AIMBOT
-    Aim_Enabled = false,
-    Aim_Key = Enum.UserInputType.MouseButton2,
-    Aim_Part = "Head",
-    Aim_FOV = 72,
-    Aim_Smooth_V = 12,
-    Aim_Smooth_H = 12,
-    Aim_MaxDist = 240,
-    Aim_VisibleOnly = true,
-    Aim_IgnoreNPCs = true,
-    Show_FOV = true,
-    
-    -- SILENT AIM
+    -- SILENT AIM (Valores baseados na imagem)
     Silent_Enabled = false,
     Silent_ShowFOV = false,
     Silent_FOV = 20,
-    Silent_HitChance = 100,
+    Silent_HitChance = 0, -- 0x na imagem
     Silent_MaxDist = 203,
     Silent_MagicBullets = false,
     Silent_VisibleOnly = false,
     Silent_IgnoreNPCs = false,
-    Silent_Key = Enum.UserInputType.MouseButton2,
+    Silent_Key = Enum.UserInputType.MouseButton2, -- Right Mouse Button
 
-    -- VISUALS
-    ESP_Enabled = false,
-    ESP_Box = false,
-    ESP_Names = false,
-    
-    -- EXPLOITS
-    Speed_Enabled = false,
-    Walk_Speed = 100,
-    Fly_Enabled = false,
-    Fly_Speed = 80,
-    Fling_Enabled = false,
-    
-    -- TELEPORT
-    TP_Enabled = false,
-    
-    -- GERAL / CONFIGURAÇÕES
+    -- TRIGGER BOT (Valores baseados na imagem)
+    Trigger_Enabled = false,
+    Trigger_Smart = false,
+    Trigger_ShowFOV = false,
+    Trigger_FOV = 20,
+    Trigger_MaxDist = 200,
+    Trigger_Delay = 0,
+    Trigger_VisibleOnly = false,
+    Trigger_IgnoreNPCs = false,
+    Trigger_Key = Enum.UserInputType.MouseButton1, -- Padrão para disparo
+
+    -- Configurações de UI para fidelidade visual
     MenuKey = Enum.KeyCode.P,
     AccentColor = Color3.fromRGB(255, 0, 0),
     TextColor = Color3.fromRGB(200, 200, 200),
@@ -58,7 +41,6 @@ getgenv().RAER_Settings = {
     SidebarColor = Color3.fromRGB(10, 10, 10),
     SectionColor = Color3.fromRGB(20, 20, 20),
     SliderFillColor = Color3.fromRGB(255, 0, 0),
-    ShowMenuOnStart = false,
 }
 
 local Settings = getgenv().RAER_Settings
@@ -75,10 +57,10 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 -- ================================================
--- INTERFACE GRÁFICA (PREMIUM GUI V5)
+-- INTERFACE GRÁFICA (PREMIUM GUI V5 - FIDELIDADE VISUAL)
 -- ================================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RAER_V5_Definitive"
+ScreenGui.Name = "RAER_V5_With_TriggerBot"
 ScreenGui.Parent = CoreGui or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -91,9 +73,8 @@ MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
-MainFrame.Visible = Settings.ShowMenuOnStart -- Define a visibilidade inicial com base na configuração
+MainFrame.Visible = false
 
--- Borda Vermelha Lateral
 local AccentLine = Instance.new("Frame")
 AccentLine.Parent = MainFrame
 AccentLine.BackgroundColor3 = Settings.AccentColor
@@ -101,7 +82,6 @@ AccentLine.Size = UDim2.new(0, 2, 1, 0)
 AccentLine.Position = UDim2.new(0, 140, 0, 0)
 AccentLine.BorderSizePixel = 0
 
--- Sidebar
 local Sidebar = Instance.new("Frame")
 Sidebar.Name = "Sidebar"
 Sidebar.Parent = MainFrame
@@ -118,11 +98,10 @@ Logo.TextColor3 = Settings.AccentColor
 Logo.Font = Enum.Font.GothamBold
 Logo.TextSize = 28
 
--- Container de Abas
 local TabContainer = Instance.new("Frame")
 TabContainer.Name = "TabContainer"
 TabContainer.Parent = MainFrame
-TabContainer.BackgroundColor3 = Settings.SectionColor
+TabContainer.BackgroundColor3 = Settings.BackgroundColor
 TabContainer.Position = UDim2.new(0, 150, 0, 10)
 TabContainer.Size = UDim2.new(1, -160, 1, -20)
 TabContainer.BackgroundTransparency = 1
@@ -138,7 +117,7 @@ local function CreatePage(name)
     Page.BackgroundTransparency = 1
     Page.Visible = false
     Page.ScrollBarThickness = 2
-    Page.CanvasSize = UDim2.new(0, 0, 0, 0) -- Ajusta dinamicamente
+    Page.CanvasSize = UDim2.new(0, 0, 0, 0)
     local UIList = Instance.new("UIListLayout")
     UIList.Parent = Page
     UIList.Padding = UDim.new(0, 15)
@@ -149,35 +128,12 @@ local function CreatePage(name)
 end
 
 -- Criar Abas
-local AimPage = CreatePage("Aimbot")
-local SilentPage = CreatePage("Silent Aim")
+local AimbotPage = CreatePage("Aimbot")
+local SilentAimPage = CreatePage("Silent Aim")
+local TriggerBotPage = CreatePage("Trigger Bot")
 local VisualsPage = CreatePage("Visuals")
 local MiscPage = CreatePage("Miscellaneous")
-local ConfigPage = CreatePage("Configurações") -- Nova aba de Configurações
 
--- Definir página inicial
-ActivePage = AimPage
-ActivePage.Visible = true
-
--- Categorias na Sidebar
-local function AddCategory(name, yPos)
-    local label = Instance.new("TextLabel")
-    label.Parent = Sidebar
-    label.Size = UDim2.new(1, -20, 0, 20)
-    label.Position = UDim2.new(0, 10, 0, yPos)
-    label.BackgroundTransparency = 1
-    label.Text = name
-    label.TextColor3 = Color3.fromRGB(100, 100, 100)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-end
-
-AddCategory("Aim", 70)
-AddCategory("Visuals", 180)
-AddCategory("Miscellaneous", 290)
-
--- Botões da Sidebar
 local TabButtons = {}
 local function AddTabButton(name, page, yPos)
     local btn = Instance.new("TextButton")
@@ -204,20 +160,41 @@ local function AddTabButton(name, page, yPos)
         end
     end)
     table.insert(TabButtons, btn)
+    return btn
 end
 
-AddTabButton("Aimbot", AimPage, 95)
-AddTabButton("Silent Aim", SilentPage, 125)
-AddTabButton("Trigger Bot", AimPage, 155)
+local function AddCategory(name, yPos)
+    local label = Instance.new("TextLabel")
+    label.Parent = Sidebar
+    label.Size = UDim2.new(1, -20, 0, 20)
+    label.Position = UDim2.new(0, 10, 0, yPos)
+    label.BackgroundTransparency = 1
+    label.Text = name
+    label.TextColor3 = Color3.fromRGB(100, 100, 100)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+end
+
+AddCategory("Aim", 70)
+AddTabButton("Aimbot", AimbotPage, 95)
+local silentAimBtn = AddTabButton("Silent Aim", SilentAimPage, 125)
+local triggerBotBtn = AddTabButton("Trigger Bot", TriggerBotPage, 155)
+
+AddCategory("Visuals", 180)
 AddTabButton("Players", VisualsPage, 205)
 AddTabButton("Vehicles", VisualsPage, 235)
 AddTabButton("World", VisualsPage, 265)
+
+AddCategory("Miscellaneous", 290)
 AddTabButton("Exploits", MiscPage, 315)
 AddTabButton("Teleport", MiscPage, 345)
-AddTabButton("Configurações", ConfigPage, 375) -- Adicionando o botão da aba de Configurações
+AddTabButton("Configuracoes", MiscPage, 375)
 
--- Marcar botão inicial como ativo
-TabButtons[1].TextColor3 = Settings.ActiveTextColor
+-- Definir página inicial
+ActivePage = SilentAimPage
+ActivePage.Visible = true
+silentAimBtn.TextColor3 = Settings.ActiveTextColor
 
 -- ================================================
 -- FUNÇÕES DE CRIAÇÃO DE UI
@@ -229,7 +206,7 @@ local function CreateSection(parent, title, layoutOrder)
     section.BackgroundColor3 = Settings.SectionColor
     section.BorderSizePixel = 1
     section.BorderColor3 = Color3.fromRGB(40, 40, 40)
-    section.Size = UDim2.new(0.95, 0, 0, 100) -- Tamanho inicial, será ajustado pelo UIListLayout
+    section.Size = UDim2.new(0.95, 0, 0, 100) -- Tamanho ajustado pelo UIListLayout
     section.LayoutOrder = layoutOrder
 
     local UIList = Instance.new("UIListLayout")
@@ -307,149 +284,146 @@ local function AddSlider(parent, text, settingKey, min, max, layoutOrder, suffix
     sliderFill.BackgroundColor3 = Settings.SliderFillColor
     sliderFill.BorderSizePixel = 0
 
+    local handle = Instance.new("Frame")
+    handle.Parent = sliderBg
+    handle.Size = UDim2.new(0, 8, 0, 8)
+    handle.BackgroundColor3 = Settings.AccentColor
+    handle.BorderSizePixel = 0
+
     local function UpdateSlider(value)
         local percentage = (value - min) / (max - min)
         sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
-        label.Text = text .. "  " .. value .. (suffix or "")
+        handle.Position = UDim2.new(percentage, -4, 0.5, -4)
+        label.Text = string.format("%s: %.1f%s", text, value, suffix or "")
+        Settings[settingKey] = value
     end
 
     UpdateSlider(Settings[settingKey])
 
-    local dragBtn = Instance.new("TextButton")
-    dragBtn.Parent = sliderBg
-    dragBtn.Size = UDim2.new(1, 0, 1, 0)
-    dragBtn.BackgroundTransparency = 1
-    dragBtn.Text = ""
+    local dragging = false
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
+    end)
 
-    dragBtn.MouseButton1Down:Connect(function()
-        local moveConn, endConn
-        moveConn = RunService.RenderStepped:Connect(function()
-            local mouseX = UserInputService:GetMouseLocation().X
-            local relativeX = mouseX - sliderBg.AbsolutePosition.X
-            local percentage = math.clamp(relativeX / sliderBg.AbsoluteSize.X, 0, 1)
-            local value = math.floor(min + (max - min) * percentage + 0.5)
-            Settings[settingKey] = value
+    handle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mousePos = UserInputService:GetMouseLocation()
+            local sliderStart = sliderBg.AbsolutePosition.X
+            local sliderWidth = sliderBg.AbsoluteSize.X
+            local percentage = math.clamp((mousePos.X - sliderStart) / sliderWidth, 0, 1)
+            local value = min + (max - min) * percentage
             UpdateSlider(value)
-        end)
-        endConn = UserInputService.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                moveConn:Disconnect()
-                endConn:Disconnect()
-            end
-        end)
+        end
     end)
 end
 
 -- ================================================
--- CONTEÚDO DAS ABAS
+-- CONTEÚDO DA ABA SILENT AIM
 -- ================================================
-
--- Aba Aimbot (Conteúdo do script original)
-local AimConfig = CreateSection(AimPage, "Sobrescrever configuração", 1)
-local PartLabel = Instance.new("TextLabel")
-PartLabel.Size = UDim2.new(1, -20, 0, 20)
-PartLabel.Position = UDim2.new(0, 10, 0, 30)
-PartLabel.BackgroundTransparency = 1
-PartLabel.Text = "Ponto de Acerto"
-PartLabel.TextColor3 = Settings.TextColor
-PartLabel.Font = Enum.Font.Gotham
-PartLabel.TextSize = 12
-PartLabel.TextXAlignment = Enum.TextXAlignment.Left
-PartLabel.Parent = AimConfig
-
-local PartBtn = Instance.new("TextButton")
-PartBtn.Size = UDim2.new(0.9, 0, 0, 25)
-PartBtn.Position = UDim2.new(0.05, 0, 0, 55)
-PartBtn.BackgroundColor3 = Settings.SectionColor
-PartBtn.Text = "Cabeça"
-PartBtn.TextColor3 = Settings.TextColor
-PartBtn.BorderSizePixel = 0
-PartBtn.Parent = AimConfig
-PartBtn.MouseButton1Click:Connect(function()
-    local parts = {["Cabeça"] = "Head", ["Peito"] = "Torso", ["Pé"] = "Feet"}
-    local names = {"Cabeça", "Peito", "Pé"}
-    local currentName = "Cabeça"
-    for k, v in pairs(parts) do if v == Settings.Aim_Part then currentName = k end end
-    local idx = table.find(names, currentName) or 1
-    idx = idx + 1
-    if idx > #names then idx = 1 end
-    Settings.Aim_Part = parts[names[idx]]
-    PartBtn.Text = names[idx]
-end)
-
-local AimGeneral = CreateSection(AimPage, "Geral", 2)
-AddCheckbox(AimGeneral, "Ativar Assistencia de Mira", "Aim_Enabled", 1)
-AddCheckbox(AimGeneral, "Mostrar Campo de Visao", "Show_FOV", 2)
-
-local AimPrecision = CreateSection(AimPage, "Precisao", 3)
-AddSlider(AimPrecision, "Campo de Visao", "Aim_FOV", 10, 800, 1)
-AddSlider(AimPrecision, "Suavidade Vertical", "Aim_Smooth_V", 0, 50, 2)
-AddSlider(AimPrecision, "Suavidade Horizontal", "Aim_Smooth_H", 0, 50, 3)
-AddSlider(AimPrecision, "Distancia Maxima", "Aim_MaxDist", 50, 2000, 4, "m")
-
-local AimMisc = CreateSection(AimPage, "Diversos", 4)
-AddCheckbox(AimMisc, "Apenas Visiveis", "Aim_VisibleOnly", 1)
-AddCheckbox(AimMisc, "Ignorar NPCs", "Aim_IgnoreNPCs", 2)
-
--- Aba Silent Aim (Conteúdo do script original)
-local SilentOverride = CreateSection(SilentPage, "Override config", 1)
+local SilentOverride = CreateSection(SilentAimPage, "Override config", 1)
 local SilentKeyLabel = Instance.new("TextLabel")
 SilentKeyLabel.Parent = SilentOverride
-SilentKeyLabel.Size = UDim2.new(1, -20, 0, 50)
+SilentKeyLabel.Size = UDim2.new(1, -20, 0, 25)
+SilentKeyLabel.Position = UDim2.new(0, 10, 0, 0)
 SilentKeyLabel.BackgroundTransparency = 1
-SilentKeyLabel.Text = "Tecla de Mira Silenciosa\nRight Mouse Button - Silent"
-SilentKeyLabel.RichText = true
+SilentKeyLabel.Text = "Tecla de Mira Silenciosa: Right Mouse Button - Silent"
 SilentKeyLabel.TextColor3 = Settings.TextColor
 SilentKeyLabel.Font = Enum.Font.Gotham
-SilentKeyLabel.TextSize = 12
+SilentKeyLabel.TextSize = 13
 SilentKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
 SilentKeyLabel.LayoutOrder = 1
 
-local SilentGeneral = CreateSection(SilentPage, "Geral", 2)
+local SilentGeneral = CreateSection(SilentAimPage, "Geral", 2)
 AddCheckbox(SilentGeneral, "Ativar", "Silent_Enabled", 1)
 AddCheckbox(SilentGeneral, "Mostrar Campo de Visao", "Silent_ShowFOV", 2)
 
-local SilentPrecision = CreateSection(SilentPage, "Precisao", 3)
-AddSlider(SilentPrecision, "Campo de Visao", "Silent_FOV", 0, 360, 1)
+local SilentPrecision = CreateSection(SilentAimPage, "Precisao", 3)
+AddSlider(SilentPrecision, "Campo de Visao", "Silent_FOV", 0, 360, 1, "")
 AddSlider(SilentPrecision, "Chance de Erro", "Silent_HitChance", 0, 100, 2, "x")
 AddSlider(SilentPrecision, "Distancia Maxima", "Silent_MaxDist", 0, 1000, 3, "m")
 
-local SilentMisc = CreateSection(SilentPage, "Diversos", 4)
+local SilentMisc = CreateSection(SilentAimPage, "Diversos", 4)
 AddCheckbox(SilentMisc, "Balas Magicas", "Silent_MagicBullets", 1)
 AddCheckbox(SilentMisc, "Apenas Visiveis", "Silent_VisibleOnly", 2)
 AddCheckbox(SilentMisc, "Ignorar NPCs", "Silent_IgnoreNPCs", 3)
 
---- Aba Configurações (NOVA)
-local ConfigGeneral = CreateSection(ConfigPage, "Geral", 1)
-AddCheckbox(ConfigGeneral, "Mostrar Menu ao Iniciar", "ShowMenuOnStart", 1)
+-- ================================================
+-- CONTEÚDO DA ABA TRIGGER BOT
+-- ================================================
+local TriggerOverride = CreateSection(TriggerBotPage, "Override config", 1)
+local TriggerKeyLabel = Instance.new("TextLabel")
+TriggerKeyLabel.Parent = TriggerOverride
+TriggerKeyLabel.Size = UDim2.new(1, -20, 0, 25)
+TriggerKeyLabel.Position = UDim2.new(0, 10, 0, 0)
+TriggerKeyLabel.BackgroundTransparency = 1
+TriggerKeyLabel.Text = "Tecla de Disparo: OFF - Trigger"
+TriggerKeyLabel.TextColor3 = Settings.TextColor
+TriggerKeyLabel.Font = Enum.Font.Gotham
+TriggerKeyLabel.TextSize = 13
+TriggerKeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+TriggerKeyLabel.LayoutOrder = 1
 
-local MenuKeyBtn = Instance.new("TextButton")
-MenuKeyBtn.Parent = ConfigGeneral
-MenuKeyBtn.Size = UDim2.new(1, -20, 0, 25)
-MenuKeyBtn.Position = UDim2.new(0, 10, 0, 55)
-MenuKeyBtn.BackgroundTransparency = 1
-MenuKeyBtn.Text = "Tecla do Menu: " .. tostring(Settings.MenuKey.Name)
-MenuKeyBtn.TextColor3 = Settings.TextColor
-MenuKeyBtn.Font = Enum.Font.Gotham
-MenuKeyBtn.TextSize = 13
-MenuKeyBtn.TextXAlignment = Enum.TextXAlignment.Left
-MenuKeyBtn.LayoutOrder = 2
-MenuKeyBtn.MouseButton1Click:Connect(function()
-    MenuKeyBtn.Text = "Pressione uma tecla..."
-    local inputConn
-    inputConn = UserInputService.InputBegan:Connect(function(input, processed)
-        if not processed and input.UserInputType == Enum.UserInputType.Keyboard then
-            Settings.MenuKey = input.KeyCode
-            MenuKeyBtn.Text = "Tecla do Menu: " .. tostring(Settings.MenuKey.Name)
-            inputConn:Disconnect()
+local TriggerGeneral = CreateSection(TriggerBotPage, "Geral", 2)
+AddCheckbox(TriggerGeneral, "Ativar", "Trigger_Enabled", 1)
+AddCheckbox(TriggerGeneral, "Triggerbot Inteligente", "Trigger_Smart", 2)
+AddCheckbox(TriggerGeneral, "Mostrar Campo de Visao", "Trigger_ShowFOV", 3)
+
+local TriggerPrecision = CreateSection(TriggerBotPage, "Precisao", 3)
+AddSlider(TriggerPrecision, "Campo de Visao", "Trigger_FOV", 0, 360, 1, "")
+AddSlider(TriggerPrecision, "Distancia Maxima", "Trigger_MaxDist", 0, 1000, 2, "m")
+AddSlider(TriggerPrecision, "Atraso", "Trigger_Delay", 0, 500, 3, "ms")
+
+local TriggerMisc = CreateSection(TriggerBotPage, "Diversos", 4)
+AddCheckbox(TriggerMisc, "Apenas Visiveis", "Trigger_VisibleOnly", 1)
+AddCheckbox(TriggerMisc, "Ignorar NPCs", "Trigger_IgnoreNPCs", 2)
+
+-- ================================================
+-- LÓGICA DO CHEAT
+-- ================================================
+local function GetClosestPlayer(fov, maxDist, visibleOnly, ignoreNpcs, part)
+    local closestPlayer, closestDist = nil, maxDist
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local targetPart = player.Character:FindFirstChild(part or "Head")
+            if targetPart then
+                local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                if onScreen then
+                    local dist = (Vector2.new(Mouse.X, Mouse.Y) - Vector2.new(pos.X, pos.Y)).Magnitude
+                    if dist < fov and dist < closestDist then
+                        closestPlayer, closestDist = player, dist
+                    end
+                end
+            end
         end
-    end)
+    end
+    return closestPlayer and closestPlayer.Character:FindFirstChild(part or "Head")
+end
+
+-- Círculos de FOV
+local SilentFOVCircle, TriggerFOVCircle = nil, nil
+pcall(function()
+    SilentFOVCircle = Drawing.new("Circle")
+    SilentFOVCircle.Thickness = 1; SilentFOVCircle.Color = Settings.AccentColor; SilentFOVCircle.Filled = false; SilentFOVCircle.Transparency = 0.5; SilentFOVCircle.Visible = false
+    TriggerFOVCircle = Drawing.new("Circle")
+    TriggerFOVCircle.Thickness = 1; TriggerFOVCircle.Color = Settings.AccentColor; TriggerFOVCircle.Filled = false; TriggerFOVCircle.Transparency = 0.5; TriggerFOVCircle.Visible = false
 end)
 
-local ConfigColors = CreateSection(ConfigPage, "Cores da Interface", 3)
-
-local function AddColorPicker(parent, text, settingKey, layoutOrder)
-    local container = Instance.new("Frame")
-    container.Parent = parent
-    con
+RunService.RenderStepped:Connect(function()
+    -- Atualiza visibilidade do FOV do Silent Aim
+    if SilentFOVCircle then
+        if Settings.Silent_ShowFOV and ActivePage == SilentAimPage and MainFrame.Visible then
+            SilentFOVCircle.Visible = true
+            SilentFOVCircle.Radius = Settings.Silent_FOV
+            local mousePos = UserInputService:GetMouseLocation()
+            SilentFOVCircle.Position = Vector2.new(mousePos.X, mousePos.Y)
+        else
+         
 (Content truncated due to size limit. Use line ranges to read remaining content)
